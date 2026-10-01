@@ -1,0 +1,43 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Single-page app routes. API routes are served by functions with in-code paths.
+[[redirects]]
+  from = "/verify/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/calllock"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/proof"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    # CallLock privacy guarantee, enforced by the browser: this site can never use the microphone or camera.
+    Permissions-Policy = "microphone=(), camera=(), geolocation=(), payment=(), usb=(), bluetooth=()"
+    Referrer-Policy = "no-referrer"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
