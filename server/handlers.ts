@@ -61,6 +61,7 @@ const TransactionRequest = z.object({
     currency: z.literal('ZAR'),
     purpose: z.enum(PAYMENT_PURPOSES),
     reference: z.string().trim().max(140),
+    recipientVerification: z.enum(['VERIFIED', 'MISMATCH']).optional(),
   }),
   language,
 });

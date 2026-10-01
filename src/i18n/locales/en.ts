@@ -171,6 +171,14 @@ export const en = {
       text: 'You have never sent money to this person before.',
       action: 'Only pay people you know and trust.',
     },
+    RECIPIENT_VERIFIED: {
+      text: 'This recipient’s identity, account ownership and account status were verified with MukuruProof.',
+      action: 'MukuruProof confirms this is the account you intend to pay.',
+    },
+    RECIPIENT_PROOF_MISMATCH: {
+      text: 'Recipient details don’t match. The person you are trying to pay does not match the verified account owner.',
+      action: 'Do not send. Contact the recipient another way before you pay.',
+    },
     LOOKALIKE_DOMAIN: {
       text: '{{host}} looks like Mukuru, but it is not mukuru.com.',
       action: 'Don’t click it, log in or pay. Scammers copy Mukuru’s name.',
@@ -359,6 +367,22 @@ export const en = {
         JOB_FEE: 'Job or work fee',
         RELEASE_FEE: 'Fee to release money or a prize',
         OTHER: 'Something else',
+      },
+      verify: {
+        title: 'Recipient verification',
+        notVerified: 'Not verified',
+        prompt: 'Ask {{name}} to share their MukuruProof, then enter the code here.',
+        placeholder: 'Paste MukuruProof code',
+        button: 'Verify with MukuruProof',
+        checking: 'Checking MukuruProof…',
+        error: 'We couldn’t check that MukuruProof. Check the code and try again.',
+        verifiedBadge: 'MukuruProof verified',
+        verifiedHeading: 'RECIPIENT VERIFIED',
+        verifiedBody: 'Identity, account ownership and account status all verified by MukuruProof.',
+        mismatchHeading: 'Recipient details don’t match',
+        mismatchBody: 'The person you are trying to pay does not match the verified account owner.',
+        doNotSend: 'DO NOT SEND',
+        holderLabel: 'MukuruProof holder',
       },
     },
     paused: {

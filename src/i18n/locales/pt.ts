@@ -173,6 +173,14 @@ export const pt: Messages = {
       text: 'Nunca enviou dinheiro a esta pessoa antes.',
       action: 'Pague apenas a pessoas que conhece e em quem confia.',
     },
+    RECIPIENT_VERIFIED: {
+      text: 'A identidade, a titularidade da conta e o estado da conta deste destinatário foram verificados com o MukuruProof.',
+      action: 'O MukuruProof confirma que esta é a conta que pretende pagar.',
+    },
+    RECIPIENT_PROOF_MISMATCH: {
+      text: 'Os dados do destinatário não coincidem. A pessoa a quem está a tentar pagar não corresponde ao titular verificado da conta.',
+      action: 'Não envie. Contacte o destinatário de outra forma antes de pagar.',
+    },
     LOOKALIKE_DOMAIN: {
       text: '{{host}} parece Mukuru, mas não é mukuru.com.',
       action: 'Não clique, não entre e não pague. Os burlões copiam o nome da Mukuru.',
@@ -361,6 +369,22 @@ export const pt: Messages = {
         JOB_FEE: 'Taxa de emprego ou trabalho',
         RELEASE_FEE: 'Taxa para libertar dinheiro ou prémio',
         OTHER: 'Outra coisa',
+      },
+      verify: {
+        title: 'Verificação do destinatário',
+        notVerified: 'Não verificado',
+        prompt: 'Peça a {{name}} para partilhar o MukuruProof e insira o código aqui.',
+        placeholder: 'Cole o código do MukuruProof',
+        button: 'Verificar com MukuruProof',
+        checking: 'A verificar o MukuruProof…',
+        error: 'Não foi possível verificar esse MukuruProof. Confira o código e tente novamente.',
+        verifiedBadge: 'MukuruProof verificado',
+        verifiedHeading: 'DESTINATÁRIO VERIFICADO',
+        verifiedBody: 'Identidade, titularidade da conta e estado da conta verificados pelo MukuruProof.',
+        mismatchHeading: 'Os dados do destinatário não coincidem',
+        mismatchBody: 'A pessoa a quem está a tentar pagar não corresponde ao titular verificado da conta.',
+        doNotSend: 'NÃO ENVIE',
+        holderLabel: 'Titular do MukuruProof',
       },
     },
     paused: {

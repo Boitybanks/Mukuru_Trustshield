@@ -1,6 +1,7 @@
 import type { ReasonCode, Signal } from '../types';
 import { RULE_SEVERITY, SEVERITY_RANK } from '../rules/catalogue';
 import { analyse } from '../checker/analyse';
+import type { RecipientVerificationStatus } from '../recipient/verifyRecipient';
 
 export const PAYMENT_PURPOSES = ['FAMILY_SUPPORT', 'BILLS', 'GOODS', 'JOB_FEE', 'RELEASE_FEE', 'OTHER'] as const;
 export type PaymentPurpose = (typeof PAYMENT_PURPOSES)[number];
@@ -14,6 +15,12 @@ export interface TransactionDraft {
   purpose: PaymentPurpose;
   /** Free-text payment reference the customer typed (often dictated by a scammer). */
   reference: string;
+  /**
+   * Result of checking the recipient's MukuruProof against the name the
+   * customer entered, if they verified one before submitting. Absent when
+   * the customer did not verify (the normal "new recipient" path).
+   */
+  recipientVerification?: RecipientVerificationStatus;
 }
 
 export type TransactionRiskLevel = 'STOP' | 'CAUTION' | 'NO_WARNING_SIGNS';
@@ -51,7 +58,14 @@ export function evaluateTransaction(draft: TransactionDraft): TransactionRisk {
     if (!found.has(s.code)) found.set(s.code, s);
   };
 
-  if (draft.recipientIsNew) add(sig('NEW_RECIPIENT'));
+  if (draft.recipientVerification === 'MISMATCH') {
+    // The proof is valid but belongs to someone else: a hard stop regardless
+    // of whether this is a new or a previously-paid recipient.
+    add(sig('RECIPIENT_PROOF_MISMATCH'));
+  } else if (draft.recipientIsNew) {
+    if (draft.recipientVerification === 'VERIFIED') add(sig('RECIPIENT_VERIFIED'));
+    else add(sig('NEW_RECIPIENT'));
+  }
   if (draft.purpose === 'JOB_FEE') {
     add(sig('UPFRONT_FEE'));
     add(sig('FAKE_JOB_CONTEXT'));

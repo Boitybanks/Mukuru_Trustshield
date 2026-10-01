@@ -173,6 +173,14 @@ export const sn: Messages = {
       text: 'Hauna kumbotumira mari kumunhu uyu.',
       action: 'Bhadhara chete vanhu vaunoziva uye vaunovimba navo.',
     },
+    RECIPIENT_VERIFIED: {
+      text: 'Chiratidzo chemunhu uyu, kuva muridzi weakaunti uye mamiriro eakaunti zvakaongororwa neMukuruProof.',
+      action: 'MukuruProof inosimbisa kuti iyi ndiyo akaunti yauri kuda kubhadhara.',
+    },
+    RECIPIENT_PROOF_MISMATCH: {
+      text: 'Ruzivo rwemunhu waunobhadhara haruenderani. Munhu waunoedza kubhadhara haasi iye muridzi weakaunti akaongororwa.',
+      action: 'Usatumire mari. Taura nemunhu uyu neimwe nzira usati wabhadhara.',
+    },
     LOOKALIKE_DOMAIN: {
       text: '{{host}} inoita seMukuru, asi haisi mukuru.com.',
       action: 'Usadzvanya, usapinda uye usabhadhara. Vanyengeri vanokopa zita reMukuru.',
@@ -361,6 +369,22 @@ export const sn: Messages = {
         JOB_FEE: 'Muripo webasa',
         RELEASE_FEE: 'Muripo wekusunungura mari kana mubairo',
         OTHER: 'Chimwe chinhu',
+      },
+      verify: {
+        title: 'Kusimbiswa kwemutambiri',
+        notVerified: 'Hazvisati zvasimbiswa',
+        prompt: 'Kumbira {{name}} kugovana MukuruProof yavo, wobva waisa kodhi iyi pano.',
+        placeholder: 'Isa kodhi yeMukuruProof',
+        button: 'Simbisa neMukuruProof',
+        checking: 'Kuongorora MukuruProof…',
+        error: 'Hatina kukwanisa kuongorora MukuruProof iyoyo. Tarisa kodhi wozama zvakare.',
+        verifiedBadge: 'MukuruProof yasimbiswa',
+        verifiedHeading: 'MUTAMBIRI ASIMBISWA',
+        verifiedBody: 'Chiratidzo, kuva muridzi weakaunti nemamiriro eakaunti zvese zvakasimbiswa neMukuruProof.',
+        mismatchHeading: 'Ruzivo rwemutambiri haruenderani',
+        mismatchBody: 'Munhu waunoedza kubhadhara haasi iye muridzi weakaunti akaongororwa.',
+        doNotSend: 'USATUMIRE',
+        holderLabel: 'Muridzi weMukuruProof',
       },
     },
     paused: {

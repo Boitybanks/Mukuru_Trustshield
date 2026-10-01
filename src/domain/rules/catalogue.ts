@@ -25,6 +25,7 @@ export const RULE_SEVERITY: Record<ReasonCode, Severity> = {
   NO_CHECKABLE_DETAILS: 'info',
   COMMUNITY_REPORTS: 'info',
   NEW_RECIPIENT: 'info',
+  RECIPIENT_VERIFIED: 'positive',
 
   MUKURU_NAME_IN_LINK: 'medium',
   MOBILE_NUMBER: 'medium',
@@ -50,6 +51,7 @@ export const RULE_SEVERITY: Record<ReasonCode, Severity> = {
   REQUESTS_OTP: 'critical',
   REQUESTS_PASSWORD: 'critical',
   REQUESTS_CARD_DETAILS: 'critical',
+  RECIPIENT_PROOF_MISMATCH: 'critical',
 };
 
 export const SEVERITY_RANK: Record<Severity, number> = {

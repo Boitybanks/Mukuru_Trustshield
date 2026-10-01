@@ -22,10 +22,15 @@ import { INITIAL_TX_STATE, transactionReducer } from '../../domain/callLock/tran
 import type { TxState } from '../../domain/callLock/transactionMachine';
 import { PAYMENT_PURPOSES } from '../../domain/transaction/evaluateTransaction';
 import type { PaymentPurpose, TransactionDraft, TransactionRisk } from '../../domain/transaction/evaluateTransaction';
-import { checkTransaction } from '../../api/client';
+import { isProofId } from '../../domain/proof/proof';
+import { matchRecipientProof } from '../../domain/recipient/verifyRecipient';
+import type { RecipientVerificationStatus } from '../../domain/recipient/verifyRecipient';
+import { checkTransaction, lookupProof } from '../../api/client';
+import type { ProofLookup } from '../../api/client';
 import { CALLLOCK_SCENARIO } from '../../data/demoScenarios';
 import { OFFICIAL_CHANNELS } from '../../data/officialRegistry';
 import { ReasonList, VerdictCard } from '../../components/Verdict';
+import { ClaimsList } from '../mukuruProof/ProofClaims';
 
 type TimelineKey =
   | 'callStarted'
@@ -42,6 +47,12 @@ interface TimelineEntry {
   id: number;
   key: TimelineKey;
   at: Date;
+}
+
+/** Result of checking a MukuruProof against the typed recipient name. */
+export interface RecipientVerification {
+  status: RecipientVerificationStatus;
+  proof: Extract<ProofLookup, { status: 'VALID' }>;
 }
 
 const TIMELINE_ICON: Record<TimelineKey, typeof Phone> = {
@@ -69,8 +80,39 @@ export default function CallLockPage() {
   const [draft, setDraft] = useState<TransactionDraft>({ ...CALLLOCK_SCENARIO });
   const [acknowledged, setAcknowledged] = useState(false);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
+  const [proofIdInput, setProofIdInput] = useState('');
+  const [verifyPhase, setVerifyPhase] = useState<'idle' | 'checking' | 'error'>('idle');
+  const [verification, setVerification] = useState<RecipientVerification | null>(null);
   const nextId = useRef(0);
   const prevStatus = useRef<TxState['status']>(tx.status);
+
+  // Verifying one recipient never carries over to a different name: MukuruProof
+  // answers "is this person who they say they are?", not "was this box ticked?".
+  useEffect(() => {
+    setVerification(null);
+    setVerifyPhase('idle');
+  }, [draft.recipientName]);
+
+  const verifyRecipient = async () => {
+    const id = proofIdInput.trim();
+    if (!isProofId(id)) {
+      setVerifyPhase('error');
+      return;
+    }
+    setVerifyPhase('checking');
+    try {
+      const result = await lookupProof(id);
+      if (result.status !== 'VALID') {
+        setVerifyPhase('error');
+        setVerification(null);
+        return;
+      }
+      setVerification({ status: matchRecipientProof(draft.recipientName, result.holder.displayName), proof: result });
+      setVerifyPhase('idle');
+    } catch {
+      setVerifyPhase('error');
+    }
+  };
 
   const log = (...keys: TimelineKey[]) =>
     setTimeline((tl) => [...tl, ...keys.map((key) => ({ id: nextId.current++, key, at: new Date() }))]);
@@ -133,12 +175,15 @@ export default function CallLockPage() {
     setDraft({ ...CALLLOCK_SCENARIO });
     setAcknowledged(false);
     setTimeline([]);
+    setProofIdInput('');
+    setVerification(null);
+    setVerifyPhase('idle');
   };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     log('submitted');
-    dispatch({ type: 'SUBMIT', draft, callState });
+    dispatch({ type: 'SUBMIT', draft: { ...draft, recipientVerification: verification?.status }, callState });
   };
 
   const confirm = () => dispatch({ type: 'CONFIRM', callState, acknowledgedWarning: acknowledged, at: new Date().toISOString() });
@@ -302,6 +347,11 @@ export default function CallLockPage() {
                   setAcknowledged={setAcknowledged}
                   amountLabel={amountLabel}
                   lang={lang}
+                  proofIdInput={proofIdInput}
+                  setProofIdInput={setProofIdInput}
+                  verifyPhase={verifyPhase}
+                  verification={verification}
+                  onVerifyRecipient={verifyRecipient}
                 />
               </div>
               <div className="money-status">
@@ -334,6 +384,11 @@ interface BodyProps {
   setAcknowledged: (v: boolean) => void;
   amountLabel: string;
   lang: ReturnType<typeof useI18n>['lang'];
+  proofIdInput: string;
+  setProofIdInput: (v: string) => void;
+  verifyPhase: 'idle' | 'checking' | 'error';
+  verification: RecipientVerification | null;
+  onVerifyRecipient: () => void;
 }
 
 function PhoneBody(props: BodyProps) {
@@ -353,6 +408,7 @@ function PhoneBody(props: BodyProps) {
             {draft.recipientIsNew && <span className="badge badge--new">{t('callLock.send.newRecipient')}</span>}
           </div>
         </div>
+        {draft.recipientIsNew && <RecipientVerificationPanel {...props} />}
         <div className="field">
           <label htmlFor="tx-amount">{t('callLock.send.amount')}</label>
           <input
@@ -391,7 +447,12 @@ function PhoneBody(props: BodyProps) {
             onChange={(e) => setDraft({ ...draft, reference: e.target.value })}
           />
         </div>
-        <button type="submit" className="btn btn--primary btn--block" data-testid="send-button">
+        <button
+          type="submit"
+          className="btn btn--primary btn--block"
+          data-testid="send-button"
+          disabled={props.verification?.status === 'MISMATCH'}
+        >
           <Send size={22} aria-hidden="true" />
           {t('callLock.send.submit', { amount: props.amountLabel })}
         </button>
@@ -462,6 +523,85 @@ function PhoneBody(props: BodyProps) {
         <RotateCcw size={20} aria-hidden="true" />
         {t('callLock.restart')}
       </button>
+    </div>
+  );
+}
+
+/**
+ * The missing connection between Send Money and MukuruProof: for a new
+ * recipient, lets the customer verify who actually owns the account before
+ * the normal CallLock/TrustShield risk check runs.
+ */
+function RecipientVerificationPanel(props: BodyProps) {
+  const { t } = useI18n();
+  const { verification, verifyPhase } = props;
+
+  if (verification?.status === 'VERIFIED') {
+    return (
+      <div className="field" data-testid="recipient-verified" data-status="VERIFIED">
+        <p className="status-msg status-msg--ok">
+          <BadgeCheck size={20} aria-hidden="true" />
+          {t('callLock.send.verify.verifiedHeading')}
+        </p>
+        <p className="small muted">{t('callLock.send.verify.verifiedBody')}</p>
+        <ClaimsList claims={verification.proof.claims} />
+      </div>
+    );
+  }
+
+  if (verification?.status === 'MISMATCH') {
+    return (
+      <div className="field" data-testid="recipient-mismatch" data-status="MISMATCH">
+        <p className="status-msg status-msg--error" role="alert">
+          <ShieldX size={20} aria-hidden="true" />
+          {t('callLock.send.verify.mismatchHeading')}
+        </p>
+        <p className="small">{t('callLock.send.verify.mismatchBody')}</p>
+        <p className="small">
+          {t('callLock.send.verify.holderLabel')}: <strong>{verification.proof.holder.displayName}</strong>
+        </p>
+        <span className="badge badge--new" data-testid="do-not-send">
+          {t('callLock.send.verify.doNotSend')}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="field">
+      <span className="field-name small">{t('callLock.send.verify.title')}</span>
+      <p className="small muted">{t('callLock.send.verify.prompt', { name: props.draft.recipientName })}</p>
+      <div className="btn-row">
+        <input
+          className="text-input"
+          placeholder={t('callLock.send.verify.placeholder')}
+          value={props.proofIdInput}
+          onChange={(e) => props.setProofIdInput(e.target.value)}
+          data-testid="verify-recipient-input"
+        />
+        <button
+          type="button"
+          className="btn btn--outline"
+          onClick={props.onVerifyRecipient}
+          disabled={verifyPhase === 'checking'}
+          data-testid="verify-recipient-button"
+        >
+          {verifyPhase === 'checking' ? (
+            <LoaderCircle size={18} className="spin" aria-hidden="true" />
+          ) : (
+            <BadgeCheck size={18} aria-hidden="true" />
+          )}
+          {t('callLock.send.verify.button')}
+        </button>
+      </div>
+      {verifyPhase === 'error' && (
+        <p className="status-msg status-msg--error" data-testid="verify-recipient-error">
+          {t('callLock.send.verify.error')}
+        </p>
+      )}
+      <span className="badge" data-testid="recipient-verification-status">
+        {t('callLock.send.verify.notVerified')}
+      </span>
     </div>
   );
 }
