@@ -1,0 +1,177 @@
+[96m[1mΓÇï[22m[39m
+[96m[1mNetlify Build                                                 [22m[39m
+[96m[1mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[22m[39m
+[36m[1mΓÇï[22m[39m
+[36m[1mΓ¥» Version[22m[39m
+  @netlify/build 37.3.0
+[36m[1mΓÇï[22m[39m
+[36m[1mΓ¥» Flags[22m[39m
+  accountId: 67aded8038ff6b38cba4870d
+  deployId: 6abeaa4de8c9f07af82f310d
+[36m[1mΓÇï[22m[39m
+[36m[1mΓ¥» Current directory[22m[39m
+  C:\Users\mrsbo\OneDrive\Desktop\Mukuru_Trustshield
+[36m[1mΓÇï[22m[39m
+[36m[1mΓ¥» Config file[22m[39m
+  C:\Users\mrsbo\OneDrive\Desktop\Mukuru_Trustshield\netlify.toml
+[36m[1mΓÇï[22m[39m
+[36m[1mΓ¥» Context[22m[39m
+  production
+[96m[1mΓÇï[22m[39m
+[96m[1mbuild.command from netlify.toml                               [22m[39m
+[96m[1mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[22m[39m
+ΓÇï
+[36m$ npm run build[39m
+
+> mukuru-trustshield@1.0.0 build
+> vite build
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./server/viteApi" without a file extension (vite.config.ts:6:31). Add the file extension
+  - import "../src/domain/proof/accountVerification" without a file extension (server/viteApi.ts:3:54). Add the file extension
+  - import "./handlers" without a file extension (server/viteApi.ts:4:103). Add the file extension
+  - import "./crypto" without a file extension (server/viteApi.ts:5:42). Add the file extension
+  - import "./repositories" without a file extension (server/viteApi.ts:6:67). Add the file extension
+  - import "./rateLimit" without a file extension (server/viteApi.ts:7:35). Add the file extension
+  - import "../src/domain/types" without a file extension (server/handlers.ts:2:27). Add the file extension
+  - import "../src/domain/types" without a file extension (server/repositories.ts:1:44). Add the file extension
+  - import "../src/domain/types" without a file extension (server/handlers.ts:3:44). Add the file extension
+  - import "../src/domain/proof/proof" without a file extension (server/repositories.ts:2:34). Add the file extension
+  - import "../src/domain/reports/policy" without a file extension (server/repositories.ts:3:43). Add the file extension
+  - import "../src/domain/checker/check" without a file extension (server/handlers.ts:4:49). Add the file extension
+  - import "../src/domain/normalisation/text" without a file extension (server/handlers.ts:5:33). Add the file extension
+  - import "../src/domain/reports/policy" without a file extension (server/handlers.ts:6:32). Add the file extension
+  - import "../src/i18n/present" without a file extension (server/handlers.ts:7:46). Add the file extension
+  - import "../src/domain/callLock/callSafety" without a file extension (server/handlers.ts:8:29). Add the file extension
+  - import "../src/domain/callLock/policy" without a file extension (server/handlers.ts:9:34). Add the file extension
+  - import "../src/domain/transaction/evaluateTransaction" without a file extension (server/handlers.ts:10:55). Add the file extension
+  - import "../src/domain/proof/accountVerification" without a file extension (server/handlers.ts:11:50). Add the file extension
+  - import "../src/domain/proof/accountVerification" without a file extension (server/handlers.ts:12:31). Add the file extension
+  - import "../src/domain/proof/proof" without a file extension (server/handlers.ts:13:65). Add the file extension
+  - import "../src/domain/proof/proof" without a file extension (server/handlers.ts:14:34). Add the file extension
+  - import "./http" without a file extension (server/handlers.ts:15:93). Add the file extension
+  - import "./rateLimit" without a file extension (server/handlers.ts:16:34). Add the file extension
+  - import "./rateLimit" without a file extension (server/handlers.ts:17:29). Add the file extension
+  - import "./repositories" without a file extension (server/handlers.ts:18:56). Add the file extension
+  - import "../types" without a file extension (src/domain/checker/check.ts:1:34). Add the file extension
+  - import "./callSafety" without a file extension (src/domain/callLock/policy.ts:1:32). Add the file extension
+  - import "../types" without a file extension (src/domain/transaction/evaluateTransaction.ts:1:41). Add the file extension
+  - import "../domain/types" without a file extension (src/i18n/present.ts:1:60). Add the file extension
+  - import "./accountVerification" without a file extension (src/domain/proof/proof.ts:1:48). Add the file extension
+  - import "./analyse" without a file extension (src/domain/checker/check.ts:2:25). Add the file extension
+  - import "../rules/catalogue" without a file extension (src/domain/transaction/evaluateTransaction.ts:2:46). Add the file extension
+  - import "../domain/rules/catalogue" without a file extension (src/i18n/present.ts:2:29). Add the file extension
+  - import "./decide" without a file extension (src/domain/checker/check.ts:3:24). Add the file extension
+  - import "../checker/analyse" without a file extension (src/domain/transaction/evaluateTransaction.ts:3:25). Add the file extension
+  - import "./decide" without a file extension (src/domain/checker/check.ts:4:35). Add the file extension
+  - import "./translate" without a file extension (src/i18n/present.ts:3:27). Add the file extension
+  - import "../types" without a file extension (src/domain/checker/decide.ts:1:96). Add the file extension
+  - import "../types" without a file extension (src/domain/checker/analyse.ts:1:70). Add the file extension
+  - import "../types" without a file extension (src/domain/rules/catalogue.ts:1:43). Add the file extension
+  - import "../domain/types" without a file extension (src/i18n/translate.ts:1:27). Add the file extension
+  - import "../rules/catalogue" without a file extension (src/domain/checker/decide.ts:2:46). Add the file extension
+  - import "../rules/catalogue" without a file extension (src/domain/checker/analyse.ts:2:31). Add the file extension
+  - import "../domain/types" without a file extension (src/i18n/translate.ts:2:31). Add the file extension
+  - import "../normalisation/text" without a file extension (src/domain/checker/analyse.ts:3:62). Add the file extension
+  - import "../../data/officialRegistry" without a file extension (src/domain/checker/decide.ts:3:36). Add the file extension
+  - import "./locales/en" without a file extension (src/i18n/translate.ts:3:20). Add the file extension
+  - import "../normalisation/url" without a file extension (src/domain/checker/analyse.ts:4:58). Add the file extension
+  - import "../reports/policy" without a file extension (src/domain/checker/decide.ts:4:34). Add the file extension
+  - import "./locales/en" without a file extension (src/i18n/translate.ts:4:31). Add the file extension
+  - import "../normalisation/phone" without a file extension (src/domain/checker/analyse.ts:5:58). Add the file extension
+  - import "./locales/pt" without a file extension (src/i18n/translate.ts:5:20). Add the file extension
+  - import "../normalisation/location" without a file extension (src/domain/checker/analyse.ts:6:35). Add the file extension
+  - import "./locales/sn" without a file extension (src/i18n/translate.ts:6:20). Add the file extension
+  - import "../rules/entityRules" without a file extension (src/domain/checker/analyse.ts:15:8). Add the file extension
+  - import "./officialLocations" without a file extension (src/data/officialRegistry.ts:12:36). Add the file extension
+  - import "../rules/entityRules" without a file extension (src/domain/checker/analyse.ts:16:33). Add the file extension
+  - import "./officialLocations" without a file extension (src/data/officialRegistry.ts:13:39). Add the file extension
+  - import "../rules/contentRules" without a file extension (src/domain/checker/analyse.ts:17:52). Add the file extension
+  - import "../../data/officialRegistry" without a file extension (src/domain/checker/analyse.ts:18:36). Add the file extension
+  - import "./officialRegistry" without a file extension (src/data/officialLocations.ts:1:33). Add the file extension
+  - import "./en" without a file extension (src/i18n/locales/sn.ts:1:31). Add the file extension
+  - import "./en" without a file extension (src/i18n/locales/pt.ts:1:31). Add the file extension
+  - import "../types" without a file extension (src/domain/rules/contentRules.ts:1:41). Add the file extension
+  - import "../../data/officialLocations" without a file extension (src/domain/normalisation/location.ts:1:39). Add the file extension
+  - import "./punycode" without a file extension (src/domain/normalisation/url.ts:1:35). Add the file extension
+  - import "../types" without a file extension (src/domain/rules/entityRules.ts:1:63). Add the file extension
+  - import "./catalogue" without a file extension (src/domain/rules/contentRules.ts:2:31). Add the file extension
+  - import "./text" without a file extension (src/domain/normalisation/location.ts:2:33). Add the file extension
+  - import "./catalogue" without a file extension (src/domain/rules/entityRules.ts:2:31). Add the file extension
+  - import "../normalisation/text" without a file extension (src/domain/rules/contentRules.ts:3:33). Add the file extension
+  - import "./similarity" without a file extension (src/domain/normalisation/location.ts:3:34). Add the file extension
+  - import "../normalisation/punycode" without a file extension (src/domain/rules/contentRules.ts:4:31). Add the file extension
+  - import "../normalisation/url" without a file extension (src/domain/rules/entityRules.ts:3:33). Add the file extension
+  - import "../normalisation/similarity" without a file extension (src/domain/rules/contentRules.ts:5:30). Add the file extension
+  - import "../normalisation/url" without a file extension (src/domain/rules/entityRules.ts:4:27). Add the file extension
+  - import "../normalisation/phone" without a file extension (src/domain/rules/entityRules.ts:5:38). Add the file extension
+  - import "../normalisation/punycode" without a file extension (src/domain/rules/entityRules.ts:6:44). Add the file extension
+  - import "../normalisation/similarity" without a file extension (src/domain/rules/entityRules.ts:7:30). Add the file extension
+  - import "../normalisation/location" without a file extension (src/domain/rules/entityRules.ts:8:53). Add the file extension
+  - import "../../data/officialRegistry" without a file extension (src/domain/rules/entityRules.ts:20:8). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+[36mvite v8.3.2 [32mbuilding client environment for production...[36m[39m
+transforming...
+Γ£ô 1931 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                         0.91 kB Γöé gzip:   0.51 kB
+dist/assets/index-BEuiz7IO.css         16.70 kB Γöé gzip:   4.23 kB
+dist/assets/useCountdown-C7QNEiCO.js    2.08 kB Γöé gzip:   0.96 kB
+dist/assets/VerifyPage-B1pngGtJ.js      3.41 kB Γöé gzip:   1.23 kB
+dist/assets/CallLockPage-DjJ9UMv2.js   16.59 kB Γöé gzip:   4.56 kB
+dist/assets/ProofPage-DRyJmx5a.js      21.74 kB Γöé gzip:   7.84 kB
+dist/assets/index-BFojL14W.js         338.30 kB Γöé gzip: 108.82 kB
+
+[32mΓ£ô built in 6.34s[39m
+ΓÇï
+[90m(build.command completed in 3m 22.7s)[39m
+[96m[1mΓÇï[22m[39m
+[96m[1mFunctions bundling                                            [22m[39m
+[96m[1mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[22m[39m
+ΓÇï
+Packaging Functions from [36mnetlify\functions[39m directory:
+ - check.mts
+ - health.mts
+ - proof.mts
+ - report.mts
+ - transaction.mts
+ΓÇï
+ΓÇï
+[90m(Functions bundling completed in 41.1s)[39m
+
+Deploying to Netlify
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+[32mDeploy path: [39m       C:\Users\mrsbo\OneDrive\Desktop\Mukuru_Trustshield\dist
+[32mFunctions path: [39m    C:\Users\mrsbo\OneDrive\Desktop\Mukuru_Trustshield\netlify\functions
+[32mConfiguration path: [39mC:\Users\mrsbo\OneDrive\Desktop\Mukuru_Trustshield\netlify.toml
+
+Γáï Uploading blobs to deploy store...
+
+Γ£ö Finished uploading blobs to deploy store
+Γáï Hashing files...
+Γáï Looking for a functions cache...
+Γ£ö Deploying functions from cache (use --skip-functions-cache to override)
+Γ£ö Finished hashing 11 files and 5 functions
+Γáï CDN diffing files...
+Γ£ö CDN requesting 11 files and 5 functions and 0 edge functions
+Γáï Uploading 16 files
+Γ£ö Finished uploading 16 assets
+Γáï Waiting for deploy to go live...
+Γ£ö Deploy is live!
+[96m[1mΓÇï[22m[39m
+[96m[1mNetlify Build Complete                                        [22m[39m
+[96m[1mΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[22m[39m
+ΓÇï
+[90m(Netlify Build completed in 4m 28.8s)[39m
+
+≡ƒÜÇ Deploy complete
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+Production URL: <https://mukuru-trustshield.netlify.app>
+Unique deploy URL: <https://6abeaa4de8c9f07af82f310d--mukuru-trustshield.netlify.app>
+
+Build logs: <https://app.netlify.com/projects/mukuru-trustshield/deploys/6abeaa4de8c9f07af82f310d>
+Function logs: <https://app.netlify.com/projects/mukuru-trustshield/logs/functions>
+Edge function logs: <https://app.netlify.com/projects/mukuru-trustshield/logs/edge-functions>
