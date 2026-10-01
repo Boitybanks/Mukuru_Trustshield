@@ -3,6 +3,7 @@ import { BadgeCheck, PhoneOff, SearchCheck, ShieldCheck } from 'lucide-react';
 import { LANGUAGES } from '../domain/types';
 import { useI18n } from '../i18n/I18nProvider';
 import { Link, useRouter } from '../app/router';
+import { BackgroundMotif } from './BackgroundMotif';
 
 const SHORT = { en: 'EN', pt: 'PT', sn: 'SN' } as const;
 
@@ -44,6 +45,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <>
+      <BackgroundMotif />
       <a className="skip-link" href="#main">
         {t('app.skip')}
       </a>
