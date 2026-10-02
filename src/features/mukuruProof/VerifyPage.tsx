@@ -4,7 +4,7 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { lookupProof } from '../../api/client';
 import type { ProofLookup } from '../../api/client';
 import { Link } from '../../app/router';
-import { ClaimsList, NeverShared } from './ProofClaims';
+import { ClaimsList, NeverShared, ProofIntegritySummary } from './ProofClaims';
 import { formatClock, useCountdown } from './useCountdown';
 
 /** What a payer sees after scanning the QR: four facts, a countdown, nothing else. */
@@ -70,6 +70,7 @@ export default function VerifyPage({ proofId }: { proofId: string }) {
               </span>
             </div>
             <ClaimsList claims={valid.claims} />
+            <ProofIntegritySummary integrity={valid.integrity} />
             <p className="countdown" data-testid="verify-countdown">
               {t('verify.expiresIn', { time: formatClock(secondsLeft) })}
             </p>
@@ -89,6 +90,16 @@ export default function VerifyPage({ proofId }: { proofId: string }) {
             </span>
             <h1 className="verdict__title">{t('verify.expired.title')}</h1>
             <p>{t('verify.expired.body')}</p>
+          </div>
+        )}
+
+        {typeof state === 'object' && state.status === 'TAMPERED' && (
+          <div className="verifier-hero" data-testid="proof-tampered">
+            <span className="verifier-hero__icon verifier-hero__icon--bad" aria-hidden="true">
+              <ShieldX size={44} />
+            </span>
+            <h1 className="verdict__title">{t('verify.tampered.title')}</h1>
+            <p>{t('verify.tampered.body')}</p>
           </div>
         )}
 

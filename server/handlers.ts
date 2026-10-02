@@ -18,6 +18,7 @@ import type { RecipientVerificationResult, RecipientVerificationStatus } from '.
 import { errorResponse, HttpError, json, methodNotAllowed, readJson, toErrorResponse } from './http';
 import type { RateLimiter } from './rateLimit';
 import { RATE_LIMITS } from './rateLimit';
+import type { ProofSigner } from './postQuantum';
 import type { ProofRepository, ReportRepository } from './repositories';
 
 export interface Deps {
@@ -28,6 +29,8 @@ export interface Deps {
   now: () => Date;
   newProofId: () => string;
   hash: (value: string) => string;
+  /** ML-DSA-65 signer: proofs are signed on create and verified on every read. */
+  signer: ProofSigner;
 }
 
 export interface RequestContext {
@@ -248,6 +251,7 @@ export function createProofHandler(deps: Deps) {
           provider: verification.provider,
           simulated: verification.simulated,
         };
+        record.signature = deps.signer.sign(record);
         await deps.proofs.save(record);
         return json(201, {
           proofId,
@@ -260,6 +264,7 @@ export function createProofHandler(deps: Deps) {
           verifiedAt: record.verifiedAt,
           provider: record.provider,
           simulated: record.simulated,
+          integrity: deps.signer.integrity(record),
         });
       }
       if (req.method !== 'GET') return methodNotAllowed(['GET', 'POST']);
@@ -272,6 +277,8 @@ export function createProofHandler(deps: Deps) {
       }
       const record = await deps.proofs.get(deps.hash(id));
       if (!record) return json(404, { status: 'NOT_FOUND', serverTime: now.toISOString() });
+      // Checked before expiry: a tampered record's own dates cannot be trusted.
+      if (!deps.signer.verify(record)) return json(409, { status: 'TAMPERED', serverTime: now.toISOString() });
       const status = proofStatus(record, now);
       if (status !== 'VALID') {
         // Expired or revoked proofs reveal nothing but their state.
@@ -286,6 +293,7 @@ export function createProofHandler(deps: Deps) {
         serverTime: now.toISOString(),
         provider: record.provider,
         simulated: record.simulated,
+        integrity: deps.signer.integrity(record),
       });
     } catch (err) {
       return toErrorResponse(err);
@@ -318,6 +326,7 @@ async function verifyRecipientForPayment(
     return { status: 'UNAVAILABLE' };
   }
   if (!record) return { status: 'NOT_FOUND' };
+  if (!deps.signer.verify(record)) return { status: 'INVALID' };
 
   const shared = {
     holder: record.holder,

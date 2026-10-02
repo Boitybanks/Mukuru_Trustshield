@@ -3,6 +3,7 @@ import type { IncomingMessage } from 'node:http';
 import { SimulatedAccountVerificationProvider } from '../src/domain/proof/accountVerification';
 import { createCheckHandler, createProofHandler, createReportHandler, createTransactionHandler } from './handlers';
 import { randomProofId, sha256Hex } from './crypto';
+import { signerFromEnv } from './postQuantum';
 import { InMemoryProofRepository, InMemoryReportRepository } from './repositories';
 import { MemoryRateLimiter } from './rateLimit';
 
@@ -27,6 +28,7 @@ export function viteApiPlugin(): Plugin {
     now: () => new Date(),
     newProofId: randomProofId,
     hash: sha256Hex,
+    signer: signerFromEnv(),
   };
   const check = createCheckHandler(deps);
   const report = createReportHandler(deps);

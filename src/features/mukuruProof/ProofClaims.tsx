@@ -1,5 +1,5 @@
-import { BadgeCheck, EyeOff } from 'lucide-react';
-import type { ProofClaims } from '../../domain/proof/proof';
+import { BadgeCheck, EyeOff, ShieldCheck } from 'lucide-react';
+import type { ProofClaims, ProofIntegrity } from '../../domain/proof/proof';
 import { useI18n } from '../../i18n/I18nProvider';
 
 /** The four minimum claims — the only facts MukuruProof ever discloses. */
@@ -45,5 +45,23 @@ export function NeverShared() {
         ))}
       </ul>
     </div>
+  );
+}
+
+/** Shows that the proof carries a valid ML-DSA-65 (NIST FIPS 204) signature. */
+export function ProofIntegritySummary({ integrity }: { integrity?: ProofIntegrity }) {
+  const { t } = useI18n();
+  if (!integrity?.verified) return null;
+  return (
+    <p className="reminder" data-testid="proof-integrity">
+      <ShieldCheck size={22} aria-hidden="true" />
+      <span>
+        <strong>{t('proof.integrity.title')}</strong>
+        <br />
+        {t('proof.integrity.verified', { algorithm: integrity.algorithm, standard: integrity.standard })}
+        <br />
+        <span className="small">{t('proof.integrity.key', { keyId: integrity.keyId })}</span>
+      </span>
+    </p>
   );
 }

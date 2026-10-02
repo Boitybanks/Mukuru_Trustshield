@@ -3,7 +3,7 @@ import { check } from '../domain/checker/check';
 import { evaluateTransaction } from '../domain/transaction/evaluateTransaction';
 import type { TransactionDraft, TransactionRisk } from '../domain/transaction/evaluateTransaction';
 import type { CallState } from '../domain/callLock/callSafety';
-import type { ProofClaims, ProofHolder } from '../domain/proof/proof';
+import type { ProofClaims, ProofHolder, ProofIntegrity } from '../domain/proof/proof';
 import type { RecipientVerificationResult } from '../domain/recipient/verifyRecipient';
 
 /** What the UI needs to render a check. Text is rendered client-side from codes so language switches are instant. */
@@ -139,6 +139,7 @@ export interface ProofCreated {
   verifiedAt: string;
   provider: string;
   simulated: boolean;
+  integrity?: ProofIntegrity;
 }
 
 export type DemoProofProfile = 'CUSTOMER' | 'RECIPIENT' | 'MISMATCH';
@@ -159,9 +160,10 @@ export type ProofLookup =
       serverTime: string;
       provider: string;
       simulated: boolean;
+      integrity?: ProofIntegrity;
     }
   | { status: 'EXPIRED' | 'REVOKED'; expiresAt: string; serverTime: string }
-  | { status: 'NOT_FOUND' | 'INVALID'; serverTime?: string };
+  | { status: 'NOT_FOUND' | 'INVALID' | 'TAMPERED'; serverTime?: string };
 
 export async function lookupProof(id: string): Promise<ProofLookup> {
   const res = await fetch(`/api/proof/${encodeURIComponent(id)}`, { headers: { accept: 'application/json' } });

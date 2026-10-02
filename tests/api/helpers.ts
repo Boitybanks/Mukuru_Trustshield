@@ -1,8 +1,12 @@
 import { createHash } from 'node:crypto';
 import { SimulatedAccountVerificationProvider } from '../../src/domain/proof/accountVerification';
 import type { Deps } from '../../server/handlers';
+import { createProofSigner } from '../../server/postQuantum';
 import { MemoryRateLimiter } from '../../server/rateLimit';
 import { InMemoryProofRepository, InMemoryReportRepository } from '../../server/repositories';
+
+/** Keygen is the slow part of ML-DSA, so tests share one fixed key. */
+export const TEST_SIGNER = createProofSigner(new Uint8Array(32).fill(7));
 
 export function testDeps(overrides: Partial<Deps> = {}, start = new Date('2026-10-01T10:00:00.000Z')) {
   let clock = start;
@@ -10,6 +14,7 @@ export function testDeps(overrides: Partial<Deps> = {}, start = new Date('2026-1
   const reports = new InMemoryReportRepository();
   const proofs = new InMemoryProofRepository();
   const deps: Deps = {
+    signer: TEST_SIGNER,
     reports,
     proofs,
     avs: new SimulatedAccountVerificationProvider(() => clock),

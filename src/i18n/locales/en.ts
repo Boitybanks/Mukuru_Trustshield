@@ -516,6 +516,11 @@ export const en = {
       no: 'No',
       tenMinutes: '10 minutes after you create it',
     },
+    integrity: {
+      title: 'Post-quantum signature',
+      verified: 'Signed with {{algorithm}} ({{standard}}). Not tampered with.',
+      key: 'Signing key {{keyId}}',
+    },
     neverTitle: 'Never shared',
     never: {
       balance: 'Balance',
@@ -549,6 +554,10 @@ export const en = {
     expired: {
       title: 'This proof has expired',
       body: 'Ask the person to create a new MukuruProof. Don’t pay based on an expired proof.',
+    },
+    tampered: {
+      title: 'This proof has been tampered with',
+      body: 'Its post-quantum signature does not match. Don’t pay based on it.',
     },
     notFound: {
       title: 'Proof not found',

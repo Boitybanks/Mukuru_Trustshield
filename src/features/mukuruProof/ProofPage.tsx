@@ -6,7 +6,7 @@ import { createProof } from '../../api/client';
 import type { ProofCreated } from '../../api/client';
 import { DEMO_CUSTOMER } from '../../domain/proof/accountVerification';
 import { Link } from '../../app/router';
-import { ClaimsList, NeverShared } from './ProofClaims';
+import { ClaimsList, NeverShared, ProofIntegritySummary } from './ProofClaims';
 import { formatClock, useCountdown } from './useCountdown';
 
 const DEMO_CLAIMS = {
@@ -78,6 +78,7 @@ export default function ProofPage() {
               </span>
             </div>
             <ClaimsList claims={proof?.claims ?? DEMO_CLAIMS} />
+            <ProofIntegritySummary integrity={proof?.integrity} />
             <dl className="claims">
               <div>
                 <dt>{t('proof.rows.verifiedAt')}</dt>
