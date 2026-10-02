@@ -77,11 +77,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
       <footer className="site-footer">
         <div className="site-footer__inner">
-          <strong>{t('app.footer')}</strong>
-          <span>{t('app.footerData')}</span>
           <span>
-            {t('app.name')} · {t('app.tagline')} · {t('app.version', { version: __APP_VERSION__ })}
+            {t('app.name')} · {t('app.tagline')}
           </span>
+          <span className="site-footer__note">{t('app.footer')}</span>
         </div>
       </footer>
     </>

@@ -1,5 +1,20 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { DEMO_SCENARIOS } from '../src/data/demoScenarios';
+
+/** Pastes one of the seeded example inputs and presses Check, like a customer would. */
+async function checkExample(page: Page, id: (typeof DEMO_SCENARIOS)[number]['id']) {
+  await page.getByTestId('check-input').fill(DEMO_SCENARIOS.find((s) => s.id === id)!.input);
+  await page.getByTestId('check-button').click();
+}
+
+/** The send-money form starts empty; fill it with the seeded scam payment. */
+async function fillScamPayment(page: Page) {
+  await page.fill('#tx-recipient', 'Tendai Moyo');
+  await page.fill('#tx-amount', '850');
+  await page.selectOption('#tx-purpose', 'JOB_FEE');
+  await page.fill('#tx-reference', 'Employment account activation');
+}
 
 /**
  * The complete judge experience (ATOM.md §42 "Final judge experience"),
@@ -31,7 +46,7 @@ async function check(page: Page, input: string) {
 test('1. OFFICIAL MUKURU — seeded official contact', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Is this really Mukuru?');
-  await page.getByTestId('demo-official').click();
+  await checkExample(page, 'official');
   const verdict = page.getByTestId('verdict');
   await expect(verdict).toHaveAttribute('data-verdict', 'OFFICIAL');
   await expect(verdict).toContainText('Official Mukuru');
@@ -61,7 +76,7 @@ test('3. SCAM MESSAGE ANALYSIS — fake job/payment message asking for money and
 
 test('4. CAN’T CONFIRM — unknown location', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('demo-unknownLocation').click();
+  await checkExample(page, 'unknownLocation');
   const verdict = page.getByTestId('verdict');
   await expect(verdict).toHaveAttribute('data-verdict', 'CANT_CONFIRM');
   await expect(verdict).toContainText('Can’t confirm');
@@ -69,7 +84,7 @@ test('4. CAN’T CONFIRM — unknown location', async ({ page }) => {
 
 test('5. MULTILINGUAL — the same warning in English, Portuguese and Shona', async ({ page }) => {
   await page.goto('/');
-  await page.getByTestId('demo-scamMessage').click();
+  await checkExample(page, 'scamMessage');
   const title = page.getByTestId('verdict').getByRole('heading', { level: 2 });
   await expect(title).toHaveText('Not official — stop');
   await page.getByRole('button', { name: 'Português' }).click();
@@ -106,6 +121,7 @@ test('6. COMMUNITY REPORTING — persisted warning count survives a reload', asy
 
 test('7. CALLLOCK — paused during a call; re-checked, never sent, after the call', async ({ page }) => {
   await page.goto('/calllock');
+  await fillScamPayment(page);
   await page.getByTestId('simulate-call').click();
   await expect(page.getByTestId('call-state')).toHaveAttribute('data-state', 'ACTIVE');
   await page.getByTestId('send-button').click();
@@ -140,7 +156,7 @@ test('8. MUKURUPROOF — proof, verifier, minimum facts, expiry', async ({ page 
     await expect(verifier.getByTestId('claims')).toContainText(text);
   }
   await expect(verifier).toContainText('Only the minimum required information is shared.');
-  await expect(verifier).toContainText('SIMULATED VERIFICATION FOR HACKATHON');
+  await expect(verifier).not.toContainText('HACKATHON');
 
   // Forged link
   await page.goto(`/verify/${'Q'.repeat(43)}`);

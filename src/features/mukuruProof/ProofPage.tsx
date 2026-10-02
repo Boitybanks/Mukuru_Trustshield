@@ -51,10 +51,9 @@ export default function ProofPage() {
     <div className="page">
       <div className="stack">
         <section className="hero" aria-labelledby="proof-title">
-          <p className="eyebrow">MUKURU TRUSTSHIELD</p>
           <h1 id="proof-title">{t('proof.title')}</h1>
           <p className="hero__lead">
-            <strong>{t('proof.tagline')}</strong> {t('proof.question')}
+{t('proof.question')}
           </p>
         </section>
 
@@ -64,9 +63,6 @@ export default function ProofPage() {
               <h2 className="section-title" id="holder-title">
                 {t('proof.holder')}
               </h2>
-              <span className="badge badge--sim" data-testid="simulated-badge">
-                {t('proof.simulated')}
-              </span>
             </div>
             <div className="recipient">
               <span className="avatar" aria-hidden="true">
@@ -90,7 +86,6 @@ export default function ProofPage() {
               </div>
             </dl>
             <NeverShared />
-            <p className="small muted">{t('proof.useCase')}</p>
           </section>
 
           <section className="card stack" aria-labelledby="share-title" aria-live="polite">
@@ -146,10 +141,6 @@ export default function ProofPage() {
               </>
             )}
 
-            <button type="button" className="btn btn--small btn--ghost" onClick={() => generate(15)} disabled={busy} data-testid="generate-short-proof">
-              <Timer size={18} aria-hidden="true" />
-              {t('proof.demoShort')}
-            </button>
           </section>
         </div>
       </div>

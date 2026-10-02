@@ -11,6 +11,12 @@ beforeEach(() => {
   stubBrowser();
 });
 
+/** Recipient and amount are typed by the customer; the form starts empty. */
+async function enterRecipient(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.type(document.getElementById('tx-recipient') as HTMLElement, name);
+  await user.type(document.getElementById('tx-amount') as HTMLElement, '850');
+}
+
 function fakeProofId(seed: string): string {
   return seed.repeat(43).slice(0, 43);
 }
@@ -38,8 +44,8 @@ describe('CallLock ↔ MukuruProof: recipient verification', () => {
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });
 
+    await enterRecipient(user, CALLLOCK_SCENARIO.recipientName);
     await user.selectOptions(screen.getByLabelText('What is this payment for?'), 'FAMILY_SUPPORT');
-    await user.clear(screen.getByLabelText('Reference'));
     await user.type(screen.getByLabelText('Reference'), 'Groceries');
 
     await user.type(screen.getByTestId('verify-recipient-input'), proofId);
@@ -71,6 +77,7 @@ describe('CallLock ↔ MukuruProof: recipient verification', () => {
 
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });
+    await enterRecipient(user, CALLLOCK_SCENARIO.recipientName);
 
     await user.type(screen.getByTestId('verify-recipient-input'), created.proofId);
     await user.click(screen.getByTestId('verify-recipient-button'));

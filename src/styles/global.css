@@ -1339,7 +1339,7 @@ main {
   border: 2px solid var(--grey);
 }
 
-.qr-box svg {
+.qr-box > svg {
   width: min(220px, 70vw);
   height: auto;
 }
@@ -1603,4 +1603,96 @@ main {
 
 @media (prefers-reduced-motion: reduce) {
   .hero::before { transform: none; }
+}
+
+/* ---------- Customer-ready pass: readable controls, no demo chrome ---------- */
+.hero .btn--primary {
+  background: var(--white);
+  color: var(--orange-text);
+  box-shadow: 0 10px 24px rgba(79, 32, 13, 0.22);
+}
+
+.hero .btn--primary:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.hero .btn--ghost {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--white);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.input-meta--end {
+  justify-content: flex-end;
+}
+
+.intro {
+  display: grid;
+  gap: 6px;
+}
+
+.intro h1 {
+  margin: 0;
+  font-size: clamp(28px, 6vw, 40px);
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.intro__lead {
+  margin: 0;
+  color: var(--charcoal);
+  font-size: 18px;
+  max-width: 60ch;
+}
+
+.call-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  background: var(--white);
+  border: 1px solid var(--grey);
+}
+
+.send-card {
+  display: grid;
+  gap: 16px;
+}
+
+.send-card .section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.send-card .call-banner {
+  margin: -4px 0 0;
+  border-radius: var(--radius-control);
+}
+
+.send-card .money-status {
+  margin: 0 -20px -20px;
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+}
+
+.site-footer__note {
+  font-size: 14px;
+  color: var(--charcoal-light);
+}
+
+/* Very narrow phones: keep the three tabs inside the screen. */
+@media (max-width: 360px) {
+  .tabs a {
+    font-size: 14px;
+    gap: 4px;
+    text-align: center;
+  }
+  .tabs a svg {
+    display: none;
+  }
 }

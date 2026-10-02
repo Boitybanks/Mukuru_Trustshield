@@ -10,7 +10,7 @@ export const sn: Messages = {
     name: 'Mukuru TrustShield',
     tagline: 'Vimba usati watumira.',
     skip: 'Svetukira kune zviri mukati',
-    footer: 'Muenzaniso wehackathon — haisi sevhisi yepamutemo yeMukuru.',
+    footer: 'Purotitaipi: kuongorora akaunti nekufona kunoshandisa data rekuedza.',
     footerData: 'Nhamba nemabazi epamutemo zvinobva pawebhusaiti yeMukuru. Kutarisa akaundi, kuziva mafoni nekubhadhara zvinonyepedzerwa.',
     version: 'Vhezheni {{version}}',
     logoAlt: 'Mukuru',
@@ -19,7 +19,7 @@ export const sn: Messages = {
   nav: {
     label: 'Zvikuru',
     check: 'Tarisa',
-    callLock: 'CallLock',
+    callLock: 'Tumira mari',
     proof: 'MukuruProof',
   },
   language: {
@@ -360,14 +360,14 @@ export const sn: Messages = {
     goHome: 'Enda kuTrustShield',
   },
   callLock: {
-    title: 'TrustShield CallLock',
+    title: 'Tumira mari zvakachengeteka',
     tagline: 'Hapana kutumira mari uri parunhare.',
-    intro: 'Vanyengeri vanochengeta vanhu parunhare vachivatungamirira kutumira mari. CallLock inoisa zororo rakachengeteka pakati peari kufona nemari yako.',
+    intro: 'Kana uri parunhare, tinomisa kubhadhara kusvikira wadimura. Vanobiridzira vanowanzogara parunhare kuti vakumanikidze.',
     privacy: 'CallLock inongoziva KANA uri parunhare. Haimborekodha, kuteerera kana kuverenga mafoni ako.',
     demoBadge: 'DEMO — kufona kwekunyepedzera',
-    controls: 'Zvekudzora demo',
-    simulateCall: 'Nyepedzera kufonerwa nemunyengeri',
-    endCall: 'Nyepedzera kudzima foni',
+    controls: 'Edza kuchengetedzwa kwerunhare',
+    simulateCall: 'Tanga runhare rwekuedza',
+    endCall: 'Pedza runhare rwekuedza',
     steps: {
       title: 'Demo mumatanho matatu',
       one: 'Dzvanya “Nyepedzera kufonerwa nemunyengeri”.',
@@ -397,6 +397,7 @@ export const sn: Messages = {
       title: 'Tumira mari',
       recipient: 'Anotambira',
       newRecipient: 'Anotambira mutsva',
+      recipientPlaceholder: 'Zita rizere',
       savedRecipient: 'Anotambira akachengetwa',
       amount: 'Mari (R)',
       purpose: 'Mari iyi ndeyei?',
@@ -413,7 +414,7 @@ export const sn: Messages = {
       verify: {
         title: 'Kusimbiswa kwemutambiri',
         notVerified: 'Kusimbiswa kunodiwa',
-        prompt: 'Kumbira {{name}} kugovana MukuruProof yavo, wobva waisa kodhi iyi pano.',
+        prompt: 'Uyu munhu mutsva. Mukumbire kodhi yeMukuruProof uiise pano.',
         placeholder: 'Isa kodhi yeMukuruProof',
         button: 'Simbisa mutambiri',
         useDemo: 'Shandisa demo MukuruProof',
@@ -498,7 +499,7 @@ export const sn: Messages = {
   proof: {
     title: 'MukuruProof',
     tagline: 'Simbisa kamwe chete. Ratidza chero kupi.',
-    question: 'TrustShield inobvunza: “Zvakachengeteka here kubhadhara izvi?” MukuruProof inopindura: “Zvakachengeteka here kundibhadhara?”',
+    question: 'Ratidza anokubhadhara kuti akaunti yako yeMukuru ndeyechokwadi, usingape chitatimendi chebhangi.',
     simulated: 'KUSIMBISA KWEKUNYEPEDZERA KWEHACKATHON',
     holder: 'Muridzi weakaundi',
     rows: {
@@ -519,8 +520,8 @@ export const sn: Messages = {
       tenMinutes: 'Maminitsi gumi mushure mekuigadzira',
     },
     integrity: {
-      title: 'Siginecha yepost-quantum',
-      verified: 'Yakasainwa ne{{algorithm}} ({{standard}}). Hapana chakachinjwa.',
+      title: 'Yakachengetedzwa neMukuru',
+      verified: 'Yakasainwa nedhijitari. Haigoni kunyeperwa kana kuchinjwa.',
       key: 'Kiyi yekusaina {{keyId}}',
     },
     neverTitle: 'Hazvimboratidzwa',

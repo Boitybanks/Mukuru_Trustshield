@@ -59,8 +59,6 @@ export function ProofIntegritySummary({ integrity }: { integrity?: ProofIntegrit
         <strong>{t('proof.integrity.title')}</strong>
         <br />
         {t('proof.integrity.verified', { algorithm: integrity.algorithm, standard: integrity.standard })}
-        <br />
-        <span className="small">{t('proof.integrity.key', { keyId: integrity.keyId })}</span>
       </span>
     </p>
   );

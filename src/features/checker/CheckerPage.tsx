@@ -1,20 +1,12 @@
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { CircleAlert, Link2, MapPin, MessageSquareText, Phone, SearchCheck, ShieldCheck, X } from 'lucide-react';
+import { CircleAlert, SearchCheck, ShieldCheck, X } from 'lucide-react';
 import { useI18n } from '../../i18n/I18nProvider';
 import { checkInput } from '../../api/client';
 import type { CheckView } from '../../api/client';
 import { MAX_INPUT_CHARS } from '../../domain/normalisation/text';
-import { DEMO_SCENARIOS } from '../../data/demoScenarios';
 import { ResultCard } from './ResultCard';
 import { KnowTheSigns, OfficialContacts } from './OfficialContacts';
-
-const HINTS = [
-  { icon: Phone, key: 'home.hints.phone' },
-  { icon: Link2, key: 'home.hints.link' },
-  { icon: MapPin, key: 'home.hints.location' },
-  { icon: MessageSquareText, key: 'home.hints.message' },
-] as const;
 
 export function CheckerPage() {
   const { t, lang } = useI18n();
@@ -70,7 +62,6 @@ export function CheckerPage() {
       <div className="layout layout--checker">
         <div className="stack">
           <section className="hero" aria-labelledby="page-title">
-            <p className="eyebrow">{t('home.eyebrow')}</p>
             <h1 id="page-title">{t('home.title')}</h1>
             <p className="hero__lead">{t('home.subtitle')}</p>
 
@@ -91,20 +82,11 @@ export function CheckerPage() {
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck={false}
-                aria-describedby="check-hints"
+               
                 aria-invalid={error ? true : undefined}
                 data-testid="check-input"
               />
-              <div className="input-meta" id="check-hints">
-                <span className="sr-only">{t('home.hintsLabel')}</span>
-                <ul className="hints" aria-label={t('home.hintsLabel')}>
-                  {HINTS.map(({ icon: Icon, key }) => (
-                    <li key={key}>
-                      <Icon size={16} aria-hidden="true" />
-                      {t(key)}
-                    </li>
-                  ))}
-                </ul>
+              <div className="input-meta input-meta--end">
                 {input && (
                   <button type="button" className="btn btn--small btn--ghost" onClick={reset}>
                     <X size={18} aria-hidden="true" />
@@ -125,27 +107,6 @@ export function CheckerPage() {
             </form>
           </section>
 
-          <section aria-labelledby="demo-title">
-            <h2 className="subhead" id="demo-title">
-              {t('home.demoTitle')}
-            </h2>
-            <div className="chips">
-              {DEMO_SCENARIOS.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  className="chip"
-                  data-testid={`demo-${s.id}`}
-                  onClick={() => {
-                    setInput(s.input);
-                    void run(s.input);
-                  }}
-                >
-                  {t(s.labelKey)}
-                </button>
-              ))}
-            </div>
-          </section>
 
           {busy && (
             <div className="card checking" role="status" aria-live="polite">
