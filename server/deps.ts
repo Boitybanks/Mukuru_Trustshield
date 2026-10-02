@@ -1,6 +1,7 @@
 import { SimulatedAccountVerificationProvider } from '../src/domain/proof/accountVerification';
 import { BlobProofRepository, BlobReportRepository } from './blobRepositories';
 import { randomProofId, sha256Hex } from './crypto';
+import { signerFromEnv } from './postQuantum';
 import type { Deps } from './handlers';
 import { MemoryRateLimiter } from './rateLimit';
 
@@ -16,6 +17,7 @@ export function productionDeps(): Deps {
     now: () => new Date(),
     newProofId: randomProofId,
     hash: sha256Hex,
+    signer: signerFromEnv(),
   };
   return cached;
 }

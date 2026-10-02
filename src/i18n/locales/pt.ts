@@ -518,6 +518,11 @@ export const pt: Messages = {
       no: 'Não',
       tenMinutes: '10 minutos depois de a criar',
     },
+    integrity: {
+      title: 'Assinatura pós-quântica',
+      verified: 'Assinado com {{algorithm}} ({{standard}}). Não foi adulterado.',
+      key: 'Chave de assinatura {{keyId}}',
+    },
     neverTitle: 'Nunca partilhado',
     never: {
       balance: 'Saldo',
@@ -551,6 +556,10 @@ export const pt: Messages = {
     expired: {
       title: 'Esta prova expirou',
       body: 'Peça à pessoa para criar um novo MukuruProof. Não pague com base numa prova expirada.',
+    },
+    tampered: {
+      title: 'Esta prova foi adulterada',
+      body: 'A assinatura pós-quântica não corresponde. Não pague com base nela.',
     },
     notFound: {
       title: 'Prova não encontrada',

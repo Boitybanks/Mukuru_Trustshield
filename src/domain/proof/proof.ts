@@ -28,6 +28,22 @@ export interface ProofHolder {
   accountHint: string;
 }
 
+/** ML-DSA-65 (NIST FIPS 204) signature over the canonical record. */
+export interface ProofSignature {
+  algorithm: 'ML-DSA-65';
+  keyId: string;
+  /** base64url signature bytes. */
+  value: string;
+}
+
+/** What a verifier is told about the post-quantum integrity check. */
+export interface ProofIntegrity {
+  algorithm: 'ML-DSA-65';
+  standard: 'NIST FIPS 204';
+  keyId: string;
+  verified: boolean;
+}
+
 export interface ProofRecord {
   /** SHA-256 of the proof ID — the raw ID is never stored. */
   idHash: string;
@@ -41,6 +57,8 @@ export interface ProofRecord {
   status: 'ACTIVE' | 'REVOKED';
   provider: string;
   simulated: boolean;
+  /** Set at creation; any edit to the record invalidates it. */
+  signature?: ProofSignature;
 }
 
 export type ProofStatus = 'VALID' | 'EXPIRED' | 'REVOKED';

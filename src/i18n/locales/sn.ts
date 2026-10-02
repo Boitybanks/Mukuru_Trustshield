@@ -518,6 +518,11 @@ export const sn: Messages = {
       no: 'Kwete',
       tenMinutes: 'Maminitsi gumi mushure mekuigadzira',
     },
+    integrity: {
+      title: 'Siginecha yepost-quantum',
+      verified: 'Yakasainwa ne{{algorithm}} ({{standard}}). Hapana chakachinjwa.',
+      key: 'Kiyi yekusaina {{keyId}}',
+    },
     neverTitle: 'Hazvimboratidzwa',
     never: {
       balance: 'Mari iri muakaundi',
@@ -551,6 +556,10 @@ export const sn: Messages = {
     expired: {
       title: 'Humbowo uhu hwapera',
       body: 'Kumbira munhu uyu kuti agadzire MukuruProof itsva. Usabhadhara uchishandisa humbowo hwapera.',
+    },
+    tampered: {
+      title: 'Humbowo uhu hwakachinjwa',
+      body: 'Siginecha yayo yepost-quantum haienderane. Usabhadhara uchivimba nahwo.',
     },
     notFound: {
       title: 'Humbowo hahuna kuwanikwa',

@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import CallLockPage from '../../src/features/callLock/CallLockPage';
 import { installApi, renderWithProviders, stubBrowser } from './harness';
 import { CALLLOCK_SCENARIO } from '../../src/data/demoScenarios';
+import type { ProofRecord } from '../../src/domain/proof/proof';
 
 beforeEach(() => {
   stubBrowser();
@@ -18,7 +19,7 @@ describe('CallLock ↔ MukuruProof: recipient verification', () => {
   it('a new recipient is verified by the server, then the payment can reach confirmation', async () => {
     const api = installApi();
     const proofId = fakeProofId('v');
-    await api.proofs.save({
+    const record: ProofRecord = {
       idHash: api.deps.hash(proofId),
       subjectRef: 'demo-tendai-moyo',
       claims: { identity: 'VERIFIED', accountOwnership: 'VERIFIED', accountStatus: 'ACTIVE', canReceiveCredits: true },
@@ -29,7 +30,10 @@ describe('CallLock ↔ MukuruProof: recipient verification', () => {
       status: 'ACTIVE',
       provider: 'SIMULATED_AVS',
       simulated: true,
-    });
+    };
+    // Issued like a real proof: ML-DSA-65 signed, or the server refuses it as tampered.
+    record.signature = api.deps.signer.sign(record);
+    await api.proofs.save(record);
 
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });
