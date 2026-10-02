@@ -8,7 +8,7 @@ export const en = {
     name: 'Mukuru TrustShield',
     tagline: 'Trust before transfer.',
     skip: 'Skip to main content',
-    footer: 'Hackathon prototype — not an official production Mukuru service.',
+    footer: 'Prototype: account checks and calls use test data.',
     footerData: 'Official contacts and branches come from Mukuru’s public website. Account checks, call detection and payments are simulated.',
     version: 'Version {{version}}',
     logoAlt: 'Mukuru',
@@ -17,7 +17,7 @@ export const en = {
   nav: {
     label: 'Main',
     check: 'Check',
-    callLock: 'CallLock',
+    callLock: 'Send money',
     proof: 'MukuruProof',
   },
   language: {
@@ -358,14 +358,14 @@ export const en = {
     goHome: 'Go to TrustShield',
   },
   callLock: {
-    title: 'TrustShield CallLock',
+    title: 'Send money safely',
     tagline: 'No sending money while you’re on a call.',
-    intro: 'Scammers keep people on the phone and talk them through a transfer. CallLock puts a safe break between the caller and your money.',
+    intro: 'If you’re on a phone call, we pause your payment until you hang up. Scammers often stay on the line to pressure you.',
     privacy: 'CallLock only knows IF a call is happening. It never records, listens to or reads your calls.',
     demoBadge: 'DEMO — simulated call',
-    controls: 'Demo controls',
-    simulateCall: 'Simulate scam call',
-    endCall: 'Simulate call ended',
+    controls: 'Test the call protection',
+    simulateCall: 'Start a test call',
+    endCall: 'End test call',
     steps: {
       title: 'Demo in three steps',
       one: 'Press “Simulate scam call”.',
@@ -395,6 +395,7 @@ export const en = {
       title: 'Send money',
       recipient: 'Recipient',
       newRecipient: 'New recipient',
+      recipientPlaceholder: 'Full name',
       savedRecipient: 'Saved recipient',
       amount: 'Amount (R)',
       purpose: 'What is this payment for?',
@@ -411,7 +412,7 @@ export const en = {
       verify: {
         title: 'Recipient verification',
         notVerified: 'Verification required',
-        prompt: 'Ask {{name}} to share their MukuruProof, then enter the code here.',
+        prompt: 'This is someone new. Ask them for their MukuruProof code and paste it here.',
         placeholder: 'Paste MukuruProof code',
         button: 'Verify recipient',
         useDemo: 'Use demo MukuruProof',
@@ -496,7 +497,7 @@ export const en = {
   proof: {
     title: 'MukuruProof',
     tagline: 'Verify once. Prove anywhere.',
-    question: 'TrustShield asks: “Is this safe to pay?” MukuruProof answers: “Is it safe to pay me?”',
+    question: 'Show a payer that your Mukuru account is real, without sharing your bank statement.',
     simulated: 'SIMULATED VERIFICATION FOR HACKATHON',
     holder: 'Account holder',
     rows: {
@@ -517,8 +518,8 @@ export const en = {
       tenMinutes: '10 minutes after you create it',
     },
     integrity: {
-      title: 'Post-quantum signature',
-      verified: 'Signed with {{algorithm}} ({{standard}}). Not tampered with.',
+      title: 'Protected by Mukuru',
+      verified: 'Digitally signed. It can’t be faked or changed.',
       key: 'Signing key {{keyId}}',
     },
     neverTitle: 'Never shared',

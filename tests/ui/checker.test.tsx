@@ -4,6 +4,18 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from '../../src/app/App';
 import { installApi, renderWithProviders, stubBrowser } from './harness';
+import { DEMO_SCENARIOS } from '../../src/data/demoScenarios';
+
+type User = ReturnType<typeof userEvent.setup>;
+
+/** What a customer does: paste the suspicious text, then press Check. */
+async function check(user: User, id: (typeof DEMO_SCENARIOS)[number]['id']) {
+  const input = screen.getByTestId('check-input');
+  await user.clear(input);
+  await user.click(input);
+  await user.paste(DEMO_SCENARIOS.find((s) => s.id === id)!.input);
+  await user.click(screen.getByTestId('check-button'));
+}
 
 beforeEach(() => {
   stubBrowser();
@@ -18,7 +30,7 @@ describe('Checker UI', () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<App />);
-    await user.click(screen.getByTestId('demo-official'));
+    await check(user, 'official');
     const card = await verdict();
     expect(card).toHaveAttribute('data-verdict', 'OFFICIAL');
     expect(within(card).getByRole('heading', { level: 2 })).toHaveTextContent('Official Mukuru');
@@ -56,7 +68,7 @@ describe('Checker UI', () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<App />);
-    await user.click(screen.getByTestId('demo-scamMessage'));
+    await check(user, 'scamMessage');
     const card = await verdict();
     expect(card).toHaveAttribute('data-verdict', 'NOT_OFFICIAL');
     const codes = within(card)
@@ -70,7 +82,7 @@ describe('Checker UI', () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<App />);
-    await user.click(screen.getByTestId('demo-unknownLocation'));
+    await check(user, 'unknownLocation');
     const card = await verdict();
     expect(card).toHaveAttribute('data-verdict', 'CANT_CONFIRM');
     expect(within(card).getByRole('button', { name: 'Official contact options' })).toBeInTheDocument();
@@ -81,7 +93,7 @@ describe('Checker UI', () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<App />);
-    await user.click(screen.getByTestId('demo-fakeLink'));
+    await check(user, 'fakeLink');
     await verdict();
     await user.click(screen.getByTestId('report-button'));
     await user.click(screen.getByTestId('report-confirm'));
@@ -89,7 +101,7 @@ describe('Checker UI', () => {
     expect(screen.getByTestId('report-count')).toHaveTextContent('Reported by 1 TrustShield user');
 
     await user.click(screen.getByTestId('check-another'));
-    await user.click(screen.getByTestId('demo-fakeLink'));
+    await check(user, 'fakeLink');
     await waitFor(() => expect(screen.getByTestId('report-count')).toHaveTextContent('Reported by 1 TrustShield user'));
   });
 
@@ -117,16 +129,17 @@ describe('Checker UI', () => {
     vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('offline'))));
     const user = userEvent.setup();
     renderWithProviders(<App />);
-    await user.click(screen.getByTestId('demo-fakeLink'));
+    await check(user, 'fakeLink');
     const card = await verdict();
     expect(card).toHaveAttribute('data-verdict', 'NOT_OFFICIAL');
     expect(within(card).getByText('Checked on this phone because the connection is slow.')).toBeInTheDocument();
   });
 
-  it('has a visible language switch with all three languages and a hackathon disclaimer', () => {
+  it('has a visible language switch with all three languages and a short prototype note', () => {
     installApi();
     renderWithProviders(<App />);
     for (const name of ['English', 'Português', 'chiShona']) expect(screen.getByRole('button', { name })).toBeInTheDocument();
-    expect(screen.getByText('Hackathon prototype — not an official production Mukuru service.')).toBeInTheDocument();
+    expect(screen.getByText('Prototype: account checks and calls use test data.')).toBeInTheDocument();
+    expect(screen.queryByText(/hackathon/i)).toBeNull();
   });
 });

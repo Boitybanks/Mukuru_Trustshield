@@ -11,11 +11,11 @@ beforeEach(() => {
 });
 
 describe('MukuruProof UI', () => {
-  it('generates a proof with QR + verifier URL, clearly labelled as simulated', async () => {
+  it('generates a proof with QR + verifier URL, without demo jargon', async () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<ProofPage />, { path: '/proof' });
-    expect(screen.getByTestId('simulated-badge')).toHaveTextContent('SIMULATED VERIFICATION FOR HACKATHON');
+    expect(screen.queryByText(/hackathon/i)).toBeNull();
     await user.click(screen.getByTestId('generate-proof'));
     expect(await screen.findByTestId('proof-qr')).toBeInTheDocument();
     expect(screen.getByTestId('verify-url')).toHaveTextContent(/\/verify\/[A-Za-z0-9_-]{43}$/);

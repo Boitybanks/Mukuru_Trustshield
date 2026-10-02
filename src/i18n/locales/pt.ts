@@ -10,7 +10,7 @@ export const pt: Messages = {
     name: 'Mukuru TrustShield',
     tagline: 'Confie antes de transferir.',
     skip: 'Saltar para o conteúdo',
-    footer: 'Protótipo de hackathon — não é um serviço oficial da Mukuru em produção.',
+    footer: 'Protótipo: as verificações de conta e as chamadas usam dados de teste.',
     footerData: 'Os contactos e balcões oficiais vêm do site público da Mukuru. Verificações de conta, deteção de chamadas e pagamentos são simulados.',
     version: 'Versão {{version}}',
     logoAlt: 'Mukuru',
@@ -19,7 +19,7 @@ export const pt: Messages = {
   nav: {
     label: 'Principal',
     check: 'Verificar',
-    callLock: 'CallLock',
+    callLock: 'Enviar dinheiro',
     proof: 'MukuruProof',
   },
   language: {
@@ -360,14 +360,14 @@ export const pt: Messages = {
     goHome: 'Ir para o TrustShield',
   },
   callLock: {
-    title: 'TrustShield CallLock',
+    title: 'Enviar dinheiro com segurança',
     tagline: 'Não se envia dinheiro durante uma chamada.',
-    intro: 'Os burlões mantêm as pessoas ao telefone e guiam-nas numa transferência. O CallLock cria uma pausa segura entre quem liga e o seu dinheiro.',
+    intro: 'Se estiver numa chamada, pausamos o pagamento até desligar. Os burlões ficam muitas vezes em linha para o pressionar.',
     privacy: 'O CallLock só sabe SE há uma chamada. Nunca grava, ouve ou lê as suas chamadas.',
     demoBadge: 'DEMONSTRAÇÃO — chamada simulada',
-    controls: 'Controlos da demonstração',
-    simulateCall: 'Simular chamada de burla',
-    endCall: 'Simular fim da chamada',
+    controls: 'Testar a proteção de chamadas',
+    simulateCall: 'Iniciar chamada de teste',
+    endCall: 'Terminar chamada de teste',
     steps: {
       title: 'Demonstração em três passos',
       one: 'Carregue em “Simular chamada de burla”.',
@@ -397,6 +397,7 @@ export const pt: Messages = {
       title: 'Enviar dinheiro',
       recipient: 'Destinatário',
       newRecipient: 'Novo destinatário',
+      recipientPlaceholder: 'Nome completo',
       savedRecipient: 'Destinatário guardado',
       amount: 'Valor (R)',
       purpose: 'Para que é este pagamento?',
@@ -413,7 +414,7 @@ export const pt: Messages = {
       verify: {
         title: 'Verificação do destinatário',
         notVerified: 'Verificação obrigatória',
-        prompt: 'Peça a {{name}} para partilhar o MukuruProof e insira o código aqui.',
+        prompt: 'Esta pessoa é nova. Peça-lhe o código MukuruProof e cole-o aqui.',
         placeholder: 'Cole o código do MukuruProof',
         button: 'Verificar destinatário',
         useDemo: 'Usar MukuruProof de demonstração',
@@ -498,7 +499,7 @@ export const pt: Messages = {
   proof: {
     title: 'MukuruProof',
     tagline: 'Verifique uma vez. Prove em qualquer lugar.',
-    question: 'O TrustShield pergunta: “É seguro pagar a isto?” O MukuruProof responde: “É seguro pagar-me a mim?”',
+    question: 'Mostre a quem lhe paga que a sua conta Mukuru é real, sem partilhar o extrato bancário.',
     simulated: 'VERIFICAÇÃO SIMULADA PARA HACKATHON',
     holder: 'Titular da conta',
     rows: {
@@ -519,8 +520,8 @@ export const pt: Messages = {
       tenMinutes: '10 minutos depois de a criar',
     },
     integrity: {
-      title: 'Assinatura pós-quântica',
-      verified: 'Assinado com {{algorithm}} ({{standard}}). Não foi adulterado.',
+      title: 'Protegido pela Mukuru',
+      verified: 'Assinado digitalmente. Não pode ser falsificado nem alterado.',
       key: 'Chave de assinatura {{keyId}}',
     },
     neverTitle: 'Nunca partilhado',

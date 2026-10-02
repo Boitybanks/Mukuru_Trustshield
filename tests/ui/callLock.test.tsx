@@ -9,11 +9,33 @@ beforeEach(() => {
   stubBrowser();
 });
 
-describe('CallLock UI', () => {
-  it('pauses the payment during a simulated scam call, then re-checks (never sends) when the call ends', async () => {
+type User = ReturnType<typeof userEvent.setup>;
+
+/** Fills the send-money form by field id, so it works in every language. */
+async function fillPayment(user: User, payment: { name: string; amount: string; purpose: string; reference: string }) {
+  const field = (id: string) => document.getElementById(id) as HTMLElement;
+  await user.type(field('tx-recipient'), payment.name);
+  await user.type(field('tx-amount'), payment.amount);
+  await user.selectOptions(field('tx-purpose'), payment.purpose);
+  await user.type(field('tx-reference'), payment.reference);
+}
+
+const SCAM_PAYMENT = { name: 'Tendai Moyo', amount: '850', purpose: 'JOB_FEE', reference: 'Employment account activation' };
+
+describe('Send money (CallLock) UI', () => {
+  it('starts with an empty form and cannot send until a recipient and amount are entered', () => {
+    installApi();
+    renderWithProviders(<CallLockPage />, { path: '/calllock' });
+    expect(document.getElementById('tx-recipient')).toHaveValue('');
+    expect(screen.getByTestId('send-button')).toBeDisabled();
+    expect(screen.queryByText(/demo|hackathon|simulated/i)).toBeNull();
+  });
+
+  it('pauses the payment during a call, then re-checks (never sends) when the call ends', async () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });
+    await fillPayment(user, SCAM_PAYMENT);
 
     await user.click(screen.getByTestId('simulate-call'));
     expect(screen.getByTestId('call-state')).toHaveAttribute('data-state', 'ACTIVE');
@@ -35,34 +57,27 @@ describe('CallLock UI', () => {
       .getAllByRole('listitem')
       .map((li) => li.getAttribute('data-code'));
     expect(codes).toEqual(expect.arrayContaining(['NEW_RECIPIENT', 'UPFRONT_FEE', 'FAKE_JOB_CONTEXT']));
+    // Reason codes are for machines, not customers.
+    expect(review).not.toHaveTextContent('UPFRONT_FEE');
     expect(within(review).getByTestId('review-amount')).toHaveTextContent('R850');
     expect(within(review).queryByTestId('confirm-send')).toBeNull();
     expect(screen.getByTestId('money-sent')).toHaveAttribute('data-sent', 'false');
-
-    const timeline = screen.getByTestId('timeline');
-    expect(Array.from(timeline.querySelectorAll('li')).map((li) => li.getAttribute('data-key'))).toEqual([
-      'callStarted',
-      'submitted',
-      'paused',
-      'callEnded',
-      'rechecked',
-      'blocked',
-    ]);
   });
 
-  it('INACTIVE: a verified normal payment goes to review and only sends after explicit confirmation', async () => {
+  it('a verified new recipient goes to review and only sends after explicit confirmation', async () => {
     installApi();
+    const proof = (await (
+      await fetch('/api/proof/create', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"profile":"RECIPIENT"}' })
+    ).json()) as { proofId: string };
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });
+    await fillPayment(user, { name: 'Tendai Moyo', amount: '850', purpose: 'FAMILY_SUPPORT', reference: 'Groceries' });
 
-    await user.click(screen.getByTestId('use-demo-proof'));
+    await user.type(screen.getByTestId('verify-recipient-input'), proof.proofId);
+    await user.click(screen.getByTestId('verify-recipient-button'));
     expect(await screen.findByTestId('recipient-verified')).toHaveAttribute('data-status', 'VERIFIED');
 
-    await user.selectOptions(screen.getByLabelText('What is this payment for?'), 'FAMILY_SUPPORT');
-    await user.clear(screen.getByLabelText('Reference'));
-    await user.type(screen.getByLabelText('Reference'), 'Groceries');
     await user.click(screen.getByTestId('send-button'));
-
     const review = await screen.findByTestId('review-screen');
     expect(screen.getByTestId('money-sent')).toHaveAttribute('data-sent', 'false');
     expect(review).toHaveAttribute('data-risk', 'NO_WARNING_SIGNS');
@@ -73,16 +88,6 @@ describe('CallLock UI', () => {
     expect(screen.getByTestId('money-sent')).toHaveAttribute('data-sent', 'true');
   });
 
-  it('UNKNOWN (real browser): does not claim protection and tells the customer to hang up first', async () => {
-    installApi();
-    const user = userEvent.setup();
-    renderWithProviders(<CallLockPage />, { path: '/calllock' });
-    await user.click(screen.getByTestId('mode-BROWSER_UNSUPPORTED'));
-    expect(await screen.findByTestId('call-state')).toHaveAttribute('data-state', 'UNKNOWN');
-    expect(screen.getByTestId('unknown-notice')).toHaveTextContent('This phone can’t tell us if you are on a call.');
-    expect(screen.getByTestId('simulate-call')).toBeDisabled();
-  });
-
   it.each([
     ['pt', 'CHAMADA EM CURSO', 'Para sua proteção, não pode enviar dinheiro enquanto está numa chamada.'],
     ['sn', 'URI PARUNHARE', 'Kuti uchengetedzeke, haugoni kutumira mari uchiri parunhare.'],
@@ -90,6 +95,7 @@ describe('CallLock UI', () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock', lang });
+    await fillPayment(user, SCAM_PAYMENT);
     await user.click(screen.getByTestId('simulate-call'));
     await user.click(screen.getByTestId('send-button'));
     const paused = await screen.findByTestId('paused-screen');

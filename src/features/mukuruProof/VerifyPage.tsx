@@ -53,7 +53,6 @@ export default function VerifyPage({ proofId }: { proofId: string }) {
                 <BadgeCheck size={44} />
               </span>
               <h1 className="verdict__title">{t('verify.heading')}</h1>
-              <span className="badge badge--sim">{t('proof.simulated')}</span>
             </div>
             <div className="recipient">
               <span className="avatar" aria-hidden="true">
