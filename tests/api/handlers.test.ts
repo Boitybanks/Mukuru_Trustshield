@@ -234,8 +234,90 @@ describe('POST /api/transaction/check (CallLock)', () => {
   it('INACTIVE → the seeded scenario is BLOCKED with the three expected reasons', async () => {
     const body = await (await h(post('/api/transaction/check', { draft: CALLLOCK_SCENARIO, callState: 'INACTIVE', language: 'pt' }))).json();
     expect(body).toMatchObject({ decision: 'BLOCKED', verdict: 'NOT_OFFICIAL', moneyMoved: false, requiresConfirmation: false });
-    expect(body.reasonCodes.sort()).toEqual(['FAKE_JOB_CONTEXT', 'NEW_RECIPIENT', 'UPFRONT_FEE']);
+    expect(body.reasonCodes.sort()).toEqual(['FAKE_JOB_CONTEXT', 'NEW_RECIPIENT', 'RECIPIENT_PROOF_REQUIRED', 'UPFRONT_FEE']);
     expect(body.reasons[0].text).toBeTypeOf('string');
+  });
+
+
+  it('verifies a new recipient on the server and re-runs the simulated AVS provider', async () => {
+    const { deps: d } = testDeps();
+    const proof = await (
+      await createProofHandler(d)(post('/api/proof/create', { profile: 'RECIPIENT' }))
+    ).json();
+    const tx = createTransactionHandler(d);
+    const body = await (
+      await tx(
+        post('/api/transaction/check', {
+          draft: { ...CALLLOCK_SCENARIO, purpose: 'FAMILY_SUPPORT', reference: 'Groceries', recipientProofId: proof.proofId },
+          callState: 'INACTIVE',
+        }),
+      )
+    ).json();
+
+    expect(body.recipientVerification).toMatchObject({
+      status: 'VERIFIED',
+      provider: 'SIMULATED_AVS',
+      simulated: true,
+      checks: {
+        accountExists: true,
+        identityVerified: true,
+        ownerMatch: true,
+        accountActive: true,
+        acceptsCredits: true,
+      },
+    });
+    expect(body.reasonCodes).toContain('RECIPIENT_VERIFIED');
+    expect(body.reasonCodes).not.toContain('RECIPIENT_PROOF_REQUIRED');
+    expect(body.requiresConfirmation).toBe(true);
+  });
+
+  it('rejects a client-forged recipientVerification flag instead of trusting it', async () => {
+    const { deps: d } = testDeps();
+    const tx = createTransactionHandler(d);
+    const res = await tx(
+      post('/api/transaction/check', {
+        draft: { ...CALLLOCK_SCENARIO, purpose: 'FAMILY_SUPPORT', reference: 'Groceries', recipientVerification: 'VERIFIED' },
+        callState: 'INACTIVE',
+      }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('blocks when a valid proof belongs to a different person', async () => {
+    const { deps: d } = testDeps();
+    const proof = await (await createProofHandler(d)(post('/api/proof/create', {}))).json();
+    const body = await (
+      await createTransactionHandler(d)(
+        post('/api/transaction/check', {
+          draft: { ...CALLLOCK_SCENARIO, purpose: 'FAMILY_SUPPORT', reference: 'Groceries', recipientProofId: proof.proofId },
+          callState: 'INACTIVE',
+        }),
+      )
+    ).json();
+    expect(body).toMatchObject({
+      decision: 'BLOCKED',
+      requiresConfirmation: false,
+      recipientVerification: { status: 'MISMATCH' },
+    });
+    expect(body.reasonCodes).toContain('RECIPIENT_PROOF_MISMATCH');
+  });
+
+  it('an expired recipient proof cannot unlock final confirmation', async () => {
+    const { deps: d, advance } = testDeps();
+    const proofHandler = createProofHandler(d);
+    const proof = await (await proofHandler(post('/api/proof/create', { profile: 'RECIPIENT', ttlSeconds: 15 }))).json();
+    advance(16);
+    const body = await (
+      await createTransactionHandler(d)(
+        post('/api/transaction/check', {
+          draft: { ...CALLLOCK_SCENARIO, purpose: 'FAMILY_SUPPORT', reference: 'Groceries', recipientProofId: proof.proofId },
+          callState: 'INACTIVE',
+        }),
+      )
+    ).json();
+    expect(body.recipientVerification.status).toBe('EXPIRED');
+    expect(body.requiresConfirmation).toBe(false);
+    expect(body.reasonCodes).toContain('RECIPIENT_PROOF_EXPIRED');
   });
 
   it('UNKNOWN → proceeds, but reports call protection as UNAVAILABLE', async () => {

@@ -1,7 +1,7 @@
 import type { ReasonCode, Signal } from '../types';
 import { RULE_SEVERITY, SEVERITY_RANK } from '../rules/catalogue';
 import { analyse } from '../checker/analyse';
-import type { RecipientVerificationStatus } from '../recipient/verifyRecipient';
+import type { RecipientVerificationResult, RecipientVerificationStatus } from '../recipient/verifyRecipient';
 
 export const PAYMENT_PURPOSES = ['FAMILY_SUPPORT', 'BILLS', 'GOODS', 'JOB_FEE', 'RELEASE_FEE', 'OTHER'] as const;
 export type PaymentPurpose = (typeof PAYMENT_PURPOSES)[number];
@@ -15,12 +15,8 @@ export interface TransactionDraft {
   purpose: PaymentPurpose;
   /** Free-text payment reference the customer typed (often dictated by a scammer). */
   reference: string;
-  /**
-   * Result of checking the recipient's MukuruProof against the name the
-   * customer entered, if they verified one before submitting. Absent when
-   * the customer did not verify (the normal "new recipient" path).
-   */
-  recipientVerification?: RecipientVerificationStatus;
+  /** Opaque proof ID only. The server decides whether it verifies the recipient. */
+  recipientProofId?: string;
 }
 
 export type TransactionRiskLevel = 'STOP' | 'CAUTION' | 'NO_WARNING_SIGNS';
@@ -31,6 +27,10 @@ export interface TransactionRisk {
   verdict: 'NOT_OFFICIAL' | 'CANT_CONFIRM' | null;
   reasonCodes: ReasonCode[];
   signals: Signal[];
+  /** Backend verification result. Never sourced from a browser boolean. */
+  recipientVerification?: RecipientVerificationResult;
+  /** False means the UI/state machine must not allow final confirmation. */
+  requiresConfirmation?: boolean;
 }
 
 /** Absence-of-evidence codes from the reference text are noise in a payment review. */
@@ -48,24 +48,60 @@ function sig(code: ReasonCode): Signal {
   return { code, severity: RULE_SEVERITY[code] };
 }
 
+function verificationReason(status: RecipientVerificationStatus): ReasonCode | null {
+  switch (status) {
+    case 'VERIFIED':
+      return 'RECIPIENT_VERIFIED';
+    case 'REQUIRED':
+      return 'RECIPIENT_PROOF_REQUIRED';
+    case 'INVALID':
+      return 'RECIPIENT_PROOF_INVALID';
+    case 'NOT_FOUND':
+      return 'RECIPIENT_PROOF_NOT_FOUND';
+    case 'EXPIRED':
+      return 'RECIPIENT_PROOF_EXPIRED';
+    case 'REVOKED':
+      return 'RECIPIENT_PROOF_REVOKED';
+    case 'MISMATCH':
+      return 'RECIPIENT_PROOF_MISMATCH';
+    case 'IDENTITY_NOT_VERIFIED':
+      return 'RECIPIENT_IDENTITY_NOT_VERIFIED';
+    case 'OWNERSHIP_NOT_VERIFIED':
+      return 'RECIPIENT_OWNERSHIP_NOT_VERIFIED';
+    case 'ACCOUNT_INACTIVE':
+      return 'RECIPIENT_ACCOUNT_INACTIVE';
+    case 'CANNOT_RECEIVE_CREDITS':
+      return 'RECIPIENT_CANNOT_RECEIVE_CREDITS';
+    case 'UNAVAILABLE':
+      return 'RECIPIENT_VERIFICATION_UNAVAILABLE';
+    case 'NOT_REQUIRED':
+      return null;
+  }
+}
+
 /**
- * Re-runs TrustShield on a payment before money moves. Used after a
- * CallLock pause and for every send. It never sends anything itself.
+ * Re-runs TrustShield on a payment before money moves.
+ *
+ * Recipient verification is supplied by the backend. A new recipient with no
+ * valid verification can still be risk-reviewed, but cannot reach final
+ * confirmation.
  */
-export function evaluateTransaction(draft: TransactionDraft): TransactionRisk {
+export function evaluateTransaction(
+  draft: TransactionDraft,
+  serverVerification?: RecipientVerificationStatus,
+): TransactionRisk {
   const found = new Map<ReasonCode, Signal>();
   const add = (s: Signal) => {
     if (!found.has(s.code)) found.set(s.code, s);
   };
 
-  if (draft.recipientVerification === 'MISMATCH') {
-    // The proof is valid but belongs to someone else: a hard stop regardless
-    // of whether this is a new or a previously-paid recipient.
-    add(sig('RECIPIENT_PROOF_MISMATCH'));
-  } else if (draft.recipientIsNew) {
-    if (draft.recipientVerification === 'VERIFIED') add(sig('RECIPIENT_VERIFIED'));
-    else add(sig('NEW_RECIPIENT'));
-  }
+  let verification = serverVerification ?? (draft.recipientIsNew ? 'REQUIRED' : 'NOT_REQUIRED');
+  if (draft.recipientIsNew && verification === 'NOT_REQUIRED') verification = 'REQUIRED';
+
+  if (draft.recipientIsNew && verification !== 'VERIFIED') add(sig('NEW_RECIPIENT'));
+  const recipientReason = verificationReason(verification);
+  if (recipientReason) add(sig(recipientReason));
+
   if (draft.purpose === 'JOB_FEE') {
     add(sig('UPFRONT_FEE'));
     add(sig('FAKE_JOB_CONTEXT'));

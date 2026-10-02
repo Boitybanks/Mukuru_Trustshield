@@ -78,6 +78,7 @@ export function transactionReducer(state: TxState, event: TxEvent): TxState {
       if (evaluateCallLock(event.callState, 'CONFIRM_TRANSFER').decision === 'PAUSE') {
         return { status: 'PAUSED_ON_CALL', draft: state.draft };
       }
+      if (state.result.requiresConfirmation === false) return state;
       if (state.result.risk === 'CAUTION' && !event.acknowledgedWarning) return state;
       return { status: 'SENT', draft: state.draft, result: state.result, sentAt: event.at };
     }

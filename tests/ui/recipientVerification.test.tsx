@@ -10,19 +10,19 @@ beforeEach(() => {
   stubBrowser();
 });
 
-/** A well-formed, otherwise-unseen proof ID for direct repository seeding. */
 function fakeProofId(seed: string): string {
   return seed.repeat(43).slice(0, 43);
 }
 
 describe('CallLock ↔ MukuruProof: recipient verification', () => {
-  it('a new recipient can be verified with MukuruProof, replacing NEW_RECIPIENT with RECIPIENT_VERIFIED', async () => {
+  it('a new recipient is verified by the server, then the payment can reach confirmation', async () => {
     const api = installApi();
     const proofId = fakeProofId('v');
     await api.proofs.save({
       idHash: api.deps.hash(proofId),
+      subjectRef: 'demo-tendai-moyo',
       claims: { identity: 'VERIFIED', accountOwnership: 'VERIFIED', accountStatus: 'ACTIVE', canReceiveCredits: true },
-      holder: { displayName: CALLLOCK_SCENARIO.recipientName, accountHint: 'Mukuru wallet •••• 1234' },
+      holder: { displayName: CALLLOCK_SCENARIO.recipientName, accountHint: 'Mukuru wallet •••• 7314' },
       verifiedAt: api.deps.now().toISOString(),
       createdAt: api.deps.now().toISOString(),
       expiresAt: new Date(api.deps.now().getTime() + 600_000).toISOString(),
@@ -34,7 +34,6 @@ describe('CallLock ↔ MukuruProof: recipient verification', () => {
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });
 
-    // Remove the job-fee warning signs so verification is the only variable under test.
     await user.selectOptions(screen.getByLabelText('What is this payment for?'), 'FAMILY_SUPPORT');
     await user.clear(screen.getByLabelText('Reference'));
     await user.type(screen.getByLabelText('Reference'), 'Groceries');
@@ -45,24 +44,22 @@ describe('CallLock ↔ MukuruProof: recipient verification', () => {
     const verified = await screen.findByTestId('recipient-verified');
     expect(verified).toHaveAttribute('data-status', 'VERIFIED');
     expect(verified).toHaveTextContent('RECIPIENT VERIFIED');
+    expect(verified).toHaveTextContent('Account exists');
 
     await user.click(screen.getByTestId('send-button'));
     const review = await screen.findByTestId('review-screen');
-    // "(recruiter)" in the recipient's own name still trips a job-context signal —
-    // verification answers identity, not whether the payment itself looks risky.
-    expect(review).toHaveAttribute('data-risk', 'CAUTION');
+    expect(review).toHaveAttribute('data-risk', 'NO_WARNING_SIGNS');
     const codes = within(review)
       .getAllByRole('listitem')
       .map((li) => li.getAttribute('data-code'));
     expect(codes).toContain('RECIPIENT_VERIFIED');
     expect(codes).not.toContain('NEW_RECIPIENT');
 
-    await user.click(within(review).getByRole('checkbox'));
     await user.click(within(review).getByTestId('confirm-send'));
     expect(await screen.findByTestId('sent-screen')).toBeInTheDocument();
   });
 
-  it('a MukuruProof that belongs to someone else is a mismatch: DO NOT SEND, and the send button is disabled', async () => {
+  it('a MukuruProof that belongs to someone else is a hard mismatch', async () => {
     installApi();
     const created = (await (
       await fetch('/api/proof/create', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
@@ -82,7 +79,7 @@ describe('CallLock ↔ MukuruProof: recipient verification', () => {
     expect(screen.getByTestId('send-button')).toBeDisabled();
   });
 
-  it('an invalid MukuruProof code shows an inline error and verifies nothing', async () => {
+  it('an invalid MukuruProof cannot create a verified state', async () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });

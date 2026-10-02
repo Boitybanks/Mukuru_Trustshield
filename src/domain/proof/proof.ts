@@ -31,6 +31,8 @@ export interface ProofHolder {
 export interface ProofRecord {
   /** SHA-256 of the proof ID — the raw ID is never stored. */
   idHash: string;
+  /** Opaque subject ref used only to re-run authorised account verification. */
+  subjectRef?: string;
   claims: ProofClaims;
   holder: ProofHolder;
   verifiedAt: string;

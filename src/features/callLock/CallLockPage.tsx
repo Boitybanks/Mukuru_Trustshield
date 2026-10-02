@@ -22,15 +22,11 @@ import { INITIAL_TX_STATE, transactionReducer } from '../../domain/callLock/tran
 import type { TxState } from '../../domain/callLock/transactionMachine';
 import { PAYMENT_PURPOSES } from '../../domain/transaction/evaluateTransaction';
 import type { PaymentPurpose, TransactionDraft, TransactionRisk } from '../../domain/transaction/evaluateTransaction';
-import { isProofId } from '../../domain/proof/proof';
-import { matchRecipientProof } from '../../domain/recipient/verifyRecipient';
-import type { RecipientVerificationStatus } from '../../domain/recipient/verifyRecipient';
-import { checkTransaction, lookupProof } from '../../api/client';
-import type { ProofLookup } from '../../api/client';
+import type { RecipientVerificationResult } from '../../domain/recipient/verifyRecipient';
+import { checkTransaction, createProof } from '../../api/client';
 import { CALLLOCK_SCENARIO } from '../../data/demoScenarios';
 import { OFFICIAL_CHANNELS } from '../../data/officialRegistry';
 import { ReasonList, VerdictCard } from '../../components/Verdict';
-import { ClaimsList } from '../mukuruProof/ProofClaims';
 
 type TimelineKey =
   | 'callStarted'
@@ -47,12 +43,6 @@ interface TimelineEntry {
   id: number;
   key: TimelineKey;
   at: Date;
-}
-
-/** Result of checking a MukuruProof against the typed recipient name. */
-export interface RecipientVerification {
-  status: RecipientVerificationStatus;
-  proof: Extract<ProofLookup, { status: 'VALID' }>;
 }
 
 const TIMELINE_ICON: Record<TimelineKey, typeof Phone> = {
@@ -82,34 +72,47 @@ export default function CallLockPage() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
   const [proofIdInput, setProofIdInput] = useState('');
   const [verifyPhase, setVerifyPhase] = useState<'idle' | 'checking' | 'error'>('idle');
-  const [verification, setVerification] = useState<RecipientVerification | null>(null);
+  const [verification, setVerification] = useState<RecipientVerificationResult | null>(null);
   const nextId = useRef(0);
   const prevStatus = useRef<TxState['status']>(tx.status);
 
-  // Verifying one recipient never carries over to a different name: MukuruProof
-  // answers "is this person who they say they are?", not "was this box ticked?".
+  // A proof never carries over to a different recipient name.
   useEffect(() => {
     setVerification(null);
     setVerifyPhase('idle');
+    setProofIdInput('');
+    setDraft((current) => (current.recipientProofId ? { ...current, recipientProofId: undefined } : current));
   }, [draft.recipientName]);
 
-  const verifyRecipient = async () => {
-    const id = proofIdInput.trim();
-    if (!isProofId(id)) {
+  const checkRecipientProof = async (rawId: string) => {
+    const id = rawId.trim();
+    if (!id) {
       setVerifyPhase('error');
+      setVerification({ status: 'INVALID' });
       return;
     }
+
+    setVerifyPhase('checking');
+    const candidate: TransactionDraft = { ...draft, recipientProofId: id };
+    setDraft(candidate);
+    const result = await checkTransaction(candidate, 'INACTIVE', lang);
+    const serverVerification = result.recipientVerification ?? { status: 'UNAVAILABLE' as const };
+    setVerification(serverVerification);
+    setVerifyPhase(serverVerification.status === 'VERIFIED' || serverVerification.status === 'MISMATCH' ? 'idle' : 'error');
+  };
+
+  const verifyRecipient = async () => {
+    await checkRecipientProof(proofIdInput);
+  };
+
+  const useDemoProof = async () => {
     setVerifyPhase('checking');
     try {
-      const result = await lookupProof(id);
-      if (result.status !== 'VALID') {
-        setVerifyPhase('error');
-        setVerification(null);
-        return;
-      }
-      setVerification({ status: matchRecipientProof(draft.recipientName, result.holder.displayName), proof: result });
-      setVerifyPhase('idle');
+      const proof = await createProof(undefined, 'RECIPIENT');
+      setProofIdInput(proof.proofId);
+      await checkRecipientProof(proof.proofId);
     } catch {
+      setVerification({ status: 'UNAVAILABLE' });
       setVerifyPhase('error');
     }
   };
@@ -137,7 +140,10 @@ export default function CallLockPage() {
     if (tx.status !== 'CHECKING') return;
     let cancelled = false;
     void checkTransaction(tx.draft, callState === 'ACTIVE' ? 'INACTIVE' : callState, lang).then((result: TransactionRisk) => {
-      if (!cancelled) dispatch({ type: 'CHECK_COMPLETED', result });
+      if (!cancelled) {
+        if (result.recipientVerification) setVerification(result.recipientVerification);
+        dispatch({ type: 'CHECK_COMPLETED', result });
+      }
     });
     return () => {
       cancelled = true;
@@ -183,7 +189,7 @@ export default function CallLockPage() {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     log('submitted');
-    dispatch({ type: 'SUBMIT', draft: { ...draft, recipientVerification: verification?.status }, callState });
+    dispatch({ type: 'SUBMIT', draft, callState });
   };
 
   const confirm = () => dispatch({ type: 'CONFIRM', callState, acknowledgedWarning: acknowledged, at: new Date().toISOString() });
@@ -352,6 +358,7 @@ export default function CallLockPage() {
                   verifyPhase={verifyPhase}
                   verification={verification}
                   onVerifyRecipient={verifyRecipient}
+                  onUseDemoProof={useDemoProof}
                 />
               </div>
               <div className="money-status">
@@ -387,8 +394,9 @@ interface BodyProps {
   proofIdInput: string;
   setProofIdInput: (v: string) => void;
   verifyPhase: 'idle' | 'checking' | 'error';
-  verification: RecipientVerification | null;
+  verification: RecipientVerificationResult | null;
   onVerifyRecipient: () => void;
+  onUseDemoProof: () => void;
 }
 
 function PhoneBody(props: BodyProps) {
@@ -528,38 +536,56 @@ function PhoneBody(props: BodyProps) {
 }
 
 /**
- * The missing connection between Send Money and MukuruProof: for a new
- * recipient, lets the customer verify who actually owns the account before
- * the normal CallLock/TrustShield risk check runs.
+ * Recipient verification is displayed here, but only the backend is allowed to
+ * create a VERIFIED state. The browser submits an opaque proof ID and renders
+ * the server's account-verification result.
  */
 function RecipientVerificationPanel(props: BodyProps) {
   const { t } = useI18n();
   const { verification, verifyPhase } = props;
 
   if (verification?.status === 'VERIFIED') {
+    const checks = verification.checks;
     return (
-      <div className="field" data-testid="recipient-verified" data-status="VERIFIED">
+      <div className="field verification-card verification-card--ok" data-testid="recipient-verified" data-status="VERIFIED">
         <p className="status-msg status-msg--ok">
           <BadgeCheck size={20} aria-hidden="true" />
           {t('callLock.send.verify.verifiedHeading')}
         </p>
         <p className="small muted">{t('callLock.send.verify.verifiedBody')}</p>
-        <ClaimsList claims={verification.proof.claims} />
+        {verification.simulated && <span className="badge badge--sim">{t('callLock.send.verify.simulated')}</span>}
+        <div className="verification-checks">
+          <span className="verification-check">✓ {t('callLock.send.verify.checks.accountExists')}</span>
+          <span className="verification-check">✓ {t('callLock.send.verify.checks.identity')}</span>
+          <span className="verification-check">✓ {t('callLock.send.verify.checks.ownership')}</span>
+          <span className="verification-check">✓ {t('callLock.send.verify.checks.active')}</span>
+          <span className="verification-check">✓ {t('callLock.send.verify.checks.credits')}</span>
+        </div>
+        {verification.holder && (
+          <p className="small">
+            {t('callLock.send.verify.holderLabel')}: <strong>{verification.holder.displayName}</strong>
+          </p>
+        )}
+        {checks && !Object.values(checks).every(Boolean) && (
+          <p className="status-msg status-msg--error">{t('callLock.send.verify.error')}</p>
+        )}
       </div>
     );
   }
 
   if (verification?.status === 'MISMATCH') {
     return (
-      <div className="field" data-testid="recipient-mismatch" data-status="MISMATCH">
+      <div className="field verification-card verification-card--danger" data-testid="recipient-mismatch" data-status="MISMATCH">
         <p className="status-msg status-msg--error" role="alert">
           <ShieldX size={20} aria-hidden="true" />
           {t('callLock.send.verify.mismatchHeading')}
         </p>
         <p className="small">{t('callLock.send.verify.mismatchBody')}</p>
-        <p className="small">
-          {t('callLock.send.verify.holderLabel')}: <strong>{verification.proof.holder.displayName}</strong>
-        </p>
+        {verification.holder && (
+          <p className="small">
+            {t('callLock.send.verify.holderLabel')}: <strong>{verification.holder.displayName}</strong>
+          </p>
+        )}
         <span className="badge badge--new" data-testid="do-not-send">
           {t('callLock.send.verify.doNotSend')}
         </span>
@@ -567,8 +593,13 @@ function RecipientVerificationPanel(props: BodyProps) {
     );
   }
 
+  const failureStatus =
+    verification && verification.status !== 'REQUIRED' && verification.status !== 'NOT_REQUIRED'
+      ? verification.status
+      : null;
+
   return (
-    <div className="field">
+    <div className="field verification-card">
       <span className="field-name small">{t('callLock.send.verify.title')}</span>
       <p className="small muted">{t('callLock.send.verify.prompt', { name: props.draft.recipientName })}</p>
       <div className="btn-row">
@@ -594,14 +625,29 @@ function RecipientVerificationPanel(props: BodyProps) {
           {t('callLock.send.verify.button')}
         </button>
       </div>
-      {verifyPhase === 'error' && (
+      <button
+        type="button"
+        className="btn btn--ghost btn--block"
+        onClick={props.onUseDemoProof}
+        disabled={verifyPhase === 'checking'}
+        data-testid="use-demo-proof"
+      >
+        <BadgeCheck size={18} aria-hidden="true" />
+        {t('callLock.send.verify.useDemo')}
+      </button>
+      {failureStatus ? (
+        <p className="status-msg status-msg--error" data-testid="verify-recipient-error">
+          {t('callLock.send.verify.cannotConfirmHeading')}: {t('callLock.send.verify.status.' + failureStatus)}
+        </p>
+      ) : verifyPhase === 'error' ? (
         <p className="status-msg status-msg--error" data-testid="verify-recipient-error">
           {t('callLock.send.verify.error')}
         </p>
+      ) : (
+        <span className="badge" data-testid="recipient-verification-status">
+          {t('callLock.send.verify.notVerified')}
+        </span>
       )}
-      <span className="badge" data-testid="recipient-verification-status">
-        {t('callLock.send.verify.notVerified')}
-      </span>
     </div>
   );
 }
@@ -611,7 +657,7 @@ function ReviewScreen(props: BodyProps & { result: TransactionRisk; txDraft: Tra
   const { result, txDraft, blocked, lang } = props;
   const reasons = result.signals.map((s) => presentReason(lang, s));
   const headline = result.verdict ? presentResult(lang, result.verdict, result.signals).headline : t('callLock.review.noWarnings');
-  const canSend = result.risk !== 'CAUTION' || props.acknowledged;
+  const canSend = result.requiresConfirmation !== false && (result.risk !== 'CAUTION' || props.acknowledged);
 
   return (
     <div className="stack" data-testid="review-screen" data-risk={result.risk}>

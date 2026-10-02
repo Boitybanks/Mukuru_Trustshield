@@ -54,21 +54,49 @@ body {
 }
 
 /* ---------- Background motif ---------- */
-/* Fixed, full-viewport decorative layer sitting behind all page content.
-   Uses z-index: 0 (not a negative value) with explicit stacking on the
-   header/main/footer so it reliably paints behind them in every browser. */
 .bg-motif {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  background: var(--surface);
 }
 
-.bg-motif__fill {
+.bg-motif__photo {
+  position: absolute;
+  inset: -4%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  filter: saturate(0.88) contrast(0.96);
+  animation: culture-photo 36s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.bg-motif__photo--joburg {
+  background-image: url('/images/culture/johannesburg.jpg');
+  animation-delay: 0s;
+}
+
+.bg-motif__photo--family {
+  background-image: url('/images/culture/family.jpg');
+  background-position: center 38%;
+  animation-delay: 12s;
+}
+
+.bg-motif__photo--maputo {
+  background-image: url('/images/culture/maputo.jpg');
+  animation-delay: 24s;
+}
+
+.bg-motif__wash {
   position: absolute;
   inset: 0;
-  background: var(--surface);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(240, 84, 35, 0.13), transparent 34%),
+    radial-gradient(circle at 88% 76%, rgba(0, 165, 163, 0.08), transparent 38%),
+    rgba(251, 248, 246, 0.80);
 }
 
 .bg-motif__layer {
@@ -81,52 +109,51 @@ body {
 .bg-motif__pattern {
   top: 0;
   height: 32px;
-  opacity: 0.05;
+  opacity: 0.055;
+  animation: bg-motif-drift-reverse 180s linear infinite;
 }
 
 .bg-motif__skyline {
   bottom: 0;
-  opacity: 0.07;
+  opacity: 0.045;
+  animation: bg-motif-drift 140s linear infinite;
 }
 
-.bg-motif__skyline,
-.bg-motif__pattern {
-  animation-duration: 140s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.bg-motif__skyline {
-  animation-name: bg-motif-drift;
-}
-
-.bg-motif__pattern {
-  animation-name: bg-motif-drift-reverse;
-  animation-duration: 180s;
+@keyframes culture-photo {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+  8%, 28% {
+    opacity: 0.13;
+  }
+  36% {
+    opacity: 0;
+    transform: scale(1.09) translate3d(-1.5%, -1%, 0);
+  }
 }
 
 @keyframes bg-motif-drift {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-8%);
-  }
+  from { transform: translateX(0); }
+  to { transform: translateX(-8%); }
 }
 
 @keyframes bg-motif-drift-reverse {
-  from {
-    transform: translateX(-8%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(-8%); }
+  to { transform: translateX(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .bg-motif__photo,
   .bg-motif__skyline,
   .bg-motif__pattern {
     animation: none;
+  }
+  .bg-motif__photo { display: none; }
+  .bg-motif__photo--joburg {
+    display: block;
+    opacity: 0.10;
+    transform: none;
   }
 }
 
@@ -206,8 +233,10 @@ a {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--white);
-  border-bottom: 1px solid var(--grey);
+  background: rgba(55, 58, 54, 0.985);
+  border-bottom: 2px solid rgba(240, 84, 35, 0.82);
+  box-shadow: 0 8px 28px rgba(31, 33, 32, 0.12);
+  backdrop-filter: blur(12px);
 }
 
 .site-header__inner {
@@ -226,7 +255,7 @@ a {
   gap: 10px;
   min-width: 0;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--white);
 }
 
 .brand__logo {
@@ -237,7 +266,7 @@ a {
 .brand__divider {
   width: 1px;
   height: 26px;
-  background: var(--grey);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .brand__product {
@@ -258,7 +287,7 @@ a {
   display: flex;
   gap: 2px;
   padding: 3px;
-  background: var(--grey);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-pill);
   flex-shrink: 0;
 }
@@ -270,6 +299,7 @@ a {
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
+  color: var(--white);
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
@@ -302,7 +332,7 @@ a {
   gap: 6px;
   min-height: 48px;
   padding: 6px 4px;
-  color: var(--charcoal);
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
   font-weight: 700;
   font-size: 15px;
@@ -312,7 +342,7 @@ a {
 }
 
 .tabs a[aria-current='page'] {
-  color: var(--ink);
+  color: var(--white);
   border-bottom-color: var(--orange);
 }
 
@@ -383,9 +413,15 @@ main {
 
 /* ---------- Hero / checker ---------- */
 .hero {
-  background: linear-gradient(180deg, var(--peach) 0%, #fff3ee 100%);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(240, 84, 35, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(255, 224, 214, 0.94) 0%, rgba(255, 247, 243, 0.91) 72%);
+  border: 1px solid rgba(240, 84, 35, 0.16);
   border-radius: var(--radius-card);
-  padding: 22px 18px 20px;
+  padding: 24px 20px 22px;
+  box-shadow: 0 18px 50px rgba(55, 58, 54, 0.08);
 }
 
 .hero h1 {
@@ -818,6 +854,48 @@ main {
   color: var(--danger);
 }
 
+
+.verification-card {
+  border: 1px solid rgba(55, 58, 54, 0.12);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(251, 248, 246, 0.92);
+}
+
+.verification-card--ok {
+  border-color: rgba(23, 112, 58, 0.34);
+  background: rgba(233, 246, 238, 0.94);
+}
+
+.verification-card--danger {
+  border-color: rgba(180, 35, 24, 0.34);
+  background: rgba(253, 236, 234, 0.96);
+}
+
+.verification-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.verification-check {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 1px solid rgba(23, 112, 58, 0.16);
+  color: var(--official);
+  font-size: 14px;
+  font-weight: 750;
+}
+
+@media (max-width: 380px) {
+  .verification-checks {
+    grid-template-columns: 1fr;
+  }
+}
 /* ---------- Official contacts & learning ---------- */
 .contact-list {
   list-style: none;
@@ -1430,4 +1508,99 @@ main {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* MUKURU_JUDGE_BRAND_V2
+   Judge-day visual pass: recognisably Mukuru — charcoal chrome, orange hero,
+   white financial-service cards, while keeping TrustShield accessibility. */
+.site-header {
+  background: rgba(37, 40, 38, 0.992);
+  border-bottom: 3px solid var(--orange);
+}
+
+.tabs {
+  background: transparent;
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--white);
+  background:
+    radial-gradient(circle at 78% 28%, rgba(255, 255, 255, 0.16) 0 4%, transparent 4.4%),
+    radial-gradient(circle at 78% 28%, rgba(255, 255, 255, 0.10) 0 15%, transparent 15.5%),
+    linear-gradient(135deg, #F05423 0%, #F45E2C 52%, #DF461B 100%);
+  border: 0;
+  box-shadow: 0 22px 56px rgba(79, 32, 13, 0.20);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 420px;
+  height: 420px;
+  right: -150px;
+  top: -190px;
+  border-radius: 50%;
+  opacity: 0.24;
+  background: repeating-conic-gradient(
+    from 7deg,
+    rgba(255,255,255,0.46) 0deg 8deg,
+    transparent 8deg 25deg
+  );
+  transform: rotate(8deg);
+}
+
+.hero .eyebrow,
+.hero h1,
+.hero .hero__lead {
+  color: var(--white);
+}
+
+.hero .eyebrow {
+  opacity: 0.90;
+}
+
+.hero .reminder {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+}
+
+.card,
+.phone,
+.verdict {
+  box-shadow: 0 16px 44px rgba(31, 33, 32, 0.11);
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.975);
+}
+
+.btn--primary {
+  box-shadow: 0 10px 24px rgba(240, 84, 35, 0.20);
+}
+
+.verification-card--ok {
+  box-shadow: inset 4px 0 0 var(--official);
+}
+
+.verification-card--danger {
+  box-shadow: inset 4px 0 0 var(--danger);
+}
+
+@media (max-width: 520px) {
+  .hero::before {
+    width: 300px;
+    height: 300px;
+    right: -130px;
+    top: -140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::before { transform: none; }
 }

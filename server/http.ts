@@ -10,6 +10,7 @@ export type ErrorCode =
   | 'METHOD_NOT_ALLOWED'
   | 'RATE_LIMITED'
   | 'NOT_FOUND'
+  | 'ACCOUNT_NOT_FOUND'
   | 'OFFICIAL_ENTITY'
   | 'NOTHING_TO_REPORT'
   | 'CONFLICT'

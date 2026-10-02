@@ -50,20 +50,24 @@ describe('CallLock UI', () => {
     ]);
   });
 
-  it('INACTIVE: a normal payment goes to review and is only sent after explicit confirmation', async () => {
+  it('INACTIVE: a verified normal payment goes to review and only sends after explicit confirmation', async () => {
     installApi();
     const user = userEvent.setup();
     renderWithProviders(<CallLockPage />, { path: '/calllock' });
+
+    await user.click(screen.getByTestId('use-demo-proof'));
+    expect(await screen.findByTestId('recipient-verified')).toHaveAttribute('data-status', 'VERIFIED');
+
     await user.selectOptions(screen.getByLabelText('What is this payment for?'), 'FAMILY_SUPPORT');
     await user.clear(screen.getByLabelText('Reference'));
     await user.type(screen.getByLabelText('Reference'), 'Groceries');
     await user.click(screen.getByTestId('send-button'));
+
     const review = await screen.findByTestId('review-screen');
     expect(screen.getByTestId('money-sent')).toHaveAttribute('data-sent', 'false');
-    // The recipient is a "recruiter" (job context) → CAUTION: sending needs an explicit acknowledgement.
-    expect(review).toHaveAttribute('data-risk', 'CAUTION');
-    expect(within(review).getByTestId('confirm-send')).toBeDisabled();
-    await user.click(within(review).getByRole('checkbox'));
+    expect(review).toHaveAttribute('data-risk', 'NO_WARNING_SIGNS');
+    expect(within(review).getByTestId('confirm-send')).toBeEnabled();
+
     await user.click(within(review).getByTestId('confirm-send'));
     expect(await screen.findByTestId('sent-screen')).toBeInTheDocument();
     expect(screen.getByTestId('money-sent')).toHaveAttribute('data-sent', 'true');

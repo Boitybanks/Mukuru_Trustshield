@@ -1,24 +1,18 @@
 /**
- * Decorative, low-opacity background: a horizon + city-skyline silhouette and a
- * geometric textile-inspired band, rendered in the Mukuru brand palette.
+ * Decorative cultural background layer.
  *
- * This is deliberately an abstract, generated motif rather than photographic
- * imagery of people or a real place — this build has no way to responsibly
- * source or license photography, so an original geometric/silhouette design
- * is used instead. It is purely decorative: `aria-hidden`, never focusable,
- * and all motion is disabled under `prefers-reduced-motion: reduce`
- * (see src/styles/global.css).
+ * Photography is intentionally low-opacity and non-interactive. The product
+ * UI remains the focus, while the imagery celebrates African people, cities
+ * and landscapes. See docs/VISUAL_ASSETS.md for sources/licenses.
  */
 export function BackgroundMotif() {
   return (
     <div className="bg-motif" aria-hidden="true">
-      <div className="bg-motif__fill" />
-      <svg
-        className="bg-motif__layer bg-motif__pattern"
-        viewBox="0 0 320 32"
-        preserveAspectRatio="xMidYMid slice"
-        focusable="false"
-      >
+      <div className="bg-motif__photo bg-motif__photo--joburg" />
+      <div className="bg-motif__photo bg-motif__photo--family" />
+      <div className="bg-motif__photo bg-motif__photo--maputo" />
+      <div className="bg-motif__wash" />
+      <svg className="bg-motif__layer bg-motif__pattern" viewBox="0 0 320 32" preserveAspectRatio="xMidYMid slice" focusable="false">
         {Array.from({ length: 10 }).map((_, i) => (
           <g key={i} transform={`translate(${i * 32}, 0)`}>
             <polygon points="0,32 16,0 32,32" fill="var(--orange)" />
@@ -26,12 +20,7 @@ export function BackgroundMotif() {
           </g>
         ))}
       </svg>
-      <svg
-        className="bg-motif__layer bg-motif__skyline"
-        viewBox="0 0 800 220"
-        preserveAspectRatio="xMidYMax slice"
-        focusable="false"
-      >
+      <svg className="bg-motif__layer bg-motif__skyline" viewBox="0 0 800 220" preserveAspectRatio="xMidYMax slice" focusable="false">
         <path d="M0,170 Q110,130 230,155 T470,145 T800,160 V220 H0 Z" fill="var(--teal)" />
         <g fill="var(--charcoal)">
           <rect x="40" y="120" width="26" height="90" />
@@ -42,13 +31,6 @@ export function BackgroundMotif() {
           <polygon points="210,108 226,66 242,108" />
           <rect x="260" y="128" width="24" height="82" />
           <rect x="300" y="100" width="30" height="110" />
-          <rect x="340" y="140" width="20" height="70" />
-          <rect x="370" y="116" width="26" height="94" />
-        </g>
-        <g fill="var(--charcoal)">
-          <rect x="642" y="152" width="6" height="52" />
-          <ellipse cx="662" cy="142" rx="72" ry="16" />
-          <ellipse cx="700" cy="150" rx="44" ry="11" />
         </g>
       </svg>
     </div>

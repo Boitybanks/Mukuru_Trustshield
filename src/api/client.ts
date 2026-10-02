@@ -4,6 +4,7 @@ import { evaluateTransaction } from '../domain/transaction/evaluateTransaction';
 import type { TransactionDraft, TransactionRisk } from '../domain/transaction/evaluateTransaction';
 import type { CallState } from '../domain/callLock/callSafety';
 import type { ProofClaims, ProofHolder } from '../domain/proof/proof';
+import type { RecipientVerificationResult } from '../domain/recipient/verifyRecipient';
 
 /** What the UI needs to render a check. Text is rendered client-side from codes so language switches are instant. */
 export interface CheckView {
@@ -89,24 +90,42 @@ export interface TransactionCheckResponse {
   verdict: TransactionRisk['verdict'];
   reasonCodes: string[];
   moneyMoved: false;
+  recipientVerification?: RecipientVerificationResult;
+  requiresConfirmation?: boolean;
 }
 
-/** Re-runs TrustShield on a payment (server first, device fallback). Never sends money. */
+function localTransactionFallback(draft: TransactionDraft): TransactionRisk {
+  const recipientVerification: RecipientVerificationResult = draft.recipientIsNew ? { status: 'UNAVAILABLE' } : { status: 'NOT_REQUIRED' };
+  const risk = evaluateTransaction(draft, recipientVerification.status);
+  return {
+    ...risk,
+    recipientVerification,
+    requiresConfirmation: !draft.recipientIsNew && risk.risk !== 'STOP',
+  };
+}
+
+/**
+ * Re-runs TrustShield on a payment. The server is authoritative for recipient
+ * verification. If the network fails, a NEW recipient is never treated as
+ * verified and cannot reach final confirmation.
+ */
 export async function checkTransaction(draft: TransactionDraft, callState: CallState, language: Language): Promise<TransactionRisk> {
   try {
     const data = await postJson<TransactionCheckResponse & { reasons?: { code: string; severity: Signal['severity'] }[] }>(
       '/api/transaction/check',
       { draft, callState, language },
     );
-    if (data.decision === 'PAUSED' || !data.risk) return evaluateTransaction(draft);
+    if (data.decision === 'PAUSED' || !data.risk) return localTransactionFallback(draft);
     return {
       risk: data.risk,
       verdict: data.verdict,
       reasonCodes: data.reasonCodes as TransactionRisk['reasonCodes'],
       signals: (data.reasons ?? []).map((r) => ({ code: r.code as Signal['code'], severity: r.severity })),
+      recipientVerification: data.recipientVerification,
+      requiresConfirmation: data.requiresConfirmation,
     };
   } catch {
-    return evaluateTransaction(draft);
+    return localTransactionFallback(draft);
   }
 }
 
@@ -118,15 +137,29 @@ export interface ProofCreated {
   claims: ProofClaims;
   holder: ProofHolder;
   verifiedAt: string;
+  provider: string;
   simulated: boolean;
 }
 
-export function createProof(ttlSeconds?: number): Promise<ProofCreated> {
-  return postJson<ProofCreated>('/api/proof/create', ttlSeconds ? { ttlSeconds } : {});
+export type DemoProofProfile = 'CUSTOMER' | 'RECIPIENT' | 'MISMATCH';
+
+export function createProof(ttlSeconds?: number, profile: DemoProofProfile = 'CUSTOMER'): Promise<ProofCreated> {
+  const body: { ttlSeconds?: number; profile: DemoProofProfile } = { profile };
+  if (ttlSeconds !== undefined) body.ttlSeconds = ttlSeconds;
+  return postJson<ProofCreated>('/api/proof/create', body);
 }
 
 export type ProofLookup =
-  | { status: 'VALID'; claims: ProofClaims; holder: ProofHolder; verifiedAt: string; expiresAt: string; serverTime: string; simulated: boolean }
+  | {
+      status: 'VALID';
+      claims: ProofClaims;
+      holder: ProofHolder;
+      verifiedAt: string;
+      expiresAt: string;
+      serverTime: string;
+      provider: string;
+      simulated: boolean;
+    }
   | { status: 'EXPIRED' | 'REVOKED'; expiresAt: string; serverTime: string }
   | { status: 'NOT_FOUND' | 'INVALID'; serverTime?: string };
 

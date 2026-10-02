@@ -24,23 +24,24 @@ describe('MukuruProof ↔ Send Money wiring', () => {
     expect(matchRecipientProof('', 'Tendai Moyo')).toBe('MISMATCH');
   });
 
-  it('a verified recipient replaces NEW_RECIPIENT with a positive RECIPIENT_VERIFIED signal and no warning', () => {
-    const result = evaluateTransaction({ ...familyDraft, recipientVerification: 'VERIFIED' });
+  it('a server-verified recipient replaces NEW_RECIPIENT with RECIPIENT_VERIFIED', () => {
+    const result = evaluateTransaction(familyDraft, 'VERIFIED');
     expect(result.reasonCodes).toContain('RECIPIENT_VERIFIED');
     expect(result.reasonCodes).not.toContain('NEW_RECIPIENT');
     expect(result).toMatchObject({ risk: 'NO_WARNING_SIGNS', verdict: null });
   });
 
-  it('an unverified new recipient keeps the existing NEW_RECIPIENT behaviour', () => {
-    const result = evaluateTransaction(familyDraft);
+  it('a new recipient without server verification requires a proof and cannot be treated as verified', () => {
+    const result = evaluateTransaction(familyDraft, 'REQUIRED');
     expect(result.reasonCodes).toContain('NEW_RECIPIENT');
+    expect(result.reasonCodes).toContain('RECIPIENT_PROOF_REQUIRED');
     expect(result.reasonCodes).not.toContain('RECIPIENT_VERIFIED');
+    expect(result).toMatchObject({ risk: 'CAUTION', verdict: 'CANT_CONFIRM' });
   });
 
-  it('a MukuruProof mismatch is a hard STOP — "do not send" — even for a previously-paid recipient', () => {
-    const result = evaluateTransaction({ ...familyDraft, recipientIsNew: false, recipientVerification: 'MISMATCH' });
+  it('a proof mismatch is a hard STOP even for a previously-paid recipient', () => {
+    const result = evaluateTransaction({ ...familyDraft, recipientIsNew: false }, 'MISMATCH');
     expect(result.reasonCodes).toContain('RECIPIENT_PROOF_MISMATCH');
-    expect(result.reasonCodes).not.toContain('NEW_RECIPIENT');
     expect(result).toMatchObject({ risk: 'STOP', verdict: 'NOT_OFFICIAL' });
   });
 });

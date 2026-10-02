@@ -26,6 +26,11 @@ export const RULE_SEVERITY: Record<ReasonCode, Severity> = {
   COMMUNITY_REPORTS: 'info',
   NEW_RECIPIENT: 'info',
   RECIPIENT_VERIFIED: 'positive',
+  RECIPIENT_PROOF_REQUIRED: 'medium',
+  RECIPIENT_PROOF_INVALID: 'medium',
+  RECIPIENT_PROOF_NOT_FOUND: 'medium',
+  RECIPIENT_PROOF_EXPIRED: 'medium',
+  RECIPIENT_VERIFICATION_UNAVAILABLE: 'medium',
 
   MUKURU_NAME_IN_LINK: 'medium',
   MOBILE_NUMBER: 'medium',
@@ -46,6 +51,11 @@ export const RULE_SEVERITY: Record<ReasonCode, Severity> = {
   IMPERSONATION_CLAIM: 'high',
   REPORTED_ENTITY: 'high',
   RELEASE_FEE: 'high',
+  RECIPIENT_PROOF_REVOKED: 'high',
+  RECIPIENT_IDENTITY_NOT_VERIFIED: 'high',
+  RECIPIENT_OWNERSHIP_NOT_VERIFIED: 'high',
+  RECIPIENT_ACCOUNT_INACTIVE: 'high',
+  RECIPIENT_CANNOT_RECEIVE_CREDITS: 'high',
 
   REQUESTS_PIN: 'critical',
   REQUESTS_OTP: 'critical',

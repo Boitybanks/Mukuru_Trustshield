@@ -1,18 +1,43 @@
+import type { ProofHolder } from '../proof/proof';
+
 /**
- * Connects MukuruProof to the send-money flow.
+ * Server-owned state for recipient verification.
  *
- * Before this module existed, "Send Money" and "MukuruProof" were parallel
- * systems: TrustShield only ever asked "does this payment *look* unsafe?"
- * (see `transaction/evaluateTransaction.ts`). It never asked "am I actually
- * paying the person I think I am?" — the question MukuruProof answers.
- *
- * `matchRecipientProof` is the one pure function that bridges them: it
- * compares what the customer typed as the recipient's name against the
- * verified identity disclosed by a MukuruProof, so a new recipient can be
- * turned from "new recipient ⚠" into either "RECIPIENT VERIFIED ✓" or a hard
- * "recipient details don't match — do not send" stop.
+ * The browser may supply an opaque proof ID. It may NEVER supply a trusted
+ * "verified" boolean/status. These states are produced by the backend only.
  */
-export type RecipientVerificationStatus = 'VERIFIED' | 'MISMATCH';
+export type RecipientVerificationStatus =
+  | 'NOT_REQUIRED'
+  | 'REQUIRED'
+  | 'VERIFIED'
+  | 'INVALID'
+  | 'NOT_FOUND'
+  | 'EXPIRED'
+  | 'REVOKED'
+  | 'MISMATCH'
+  | 'IDENTITY_NOT_VERIFIED'
+  | 'OWNERSHIP_NOT_VERIFIED'
+  | 'ACCOUNT_INACTIVE'
+  | 'CANNOT_RECEIVE_CREDITS'
+  | 'UNAVAILABLE';
+
+export interface RecipientVerificationChecks {
+  accountExists: boolean;
+  identityVerified: boolean;
+  ownerMatch: boolean;
+  accountActive: boolean;
+  acceptsCredits: boolean;
+}
+
+export interface RecipientVerificationResult {
+  status: RecipientVerificationStatus;
+  holder?: ProofHolder;
+  checks?: RecipientVerificationChecks;
+  provider?: string;
+  simulated?: boolean;
+  verifiedAt?: string;
+  expiresAt?: string;
+}
 
 /** Loose equality: case, punctuation, extra whitespace and accents never matter. */
 function normaliseName(name: string): string {
@@ -26,12 +51,11 @@ function normaliseName(name: string): string {
 }
 
 /**
- * Compares the recipient name the customer entered against the name on a
- * valid MukuruProof. VERIFIED only when the names match once normalised;
- * anything else is a MISMATCH — the account exists and is verified, but it
- * does not belong to the person the customer believes they are paying.
+ * Compare the intended recipient against the holder disclosed by a valid
+ * MukuruProof. This helper is pure; the backend decides whether a proof itself
+ * is valid and whether its live account-verification facts are acceptable.
  */
-export function matchRecipientProof(recipientName: string, proofHolderName: string): RecipientVerificationStatus {
+export function matchRecipientProof(recipientName: string, proofHolderName: string): 'VERIFIED' | 'MISMATCH' {
   const a = normaliseName(recipientName);
   const b = normaliseName(proofHolderName);
   return a.length > 0 && a === b ? 'VERIFIED' : 'MISMATCH';

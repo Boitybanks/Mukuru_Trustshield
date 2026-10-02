@@ -8,10 +8,13 @@ import { presentReason, presentResult } from '../src/i18n/present';
 import { CALL_STATES } from '../src/domain/callLock/callSafety';
 import { evaluateCallLock } from '../src/domain/callLock/policy';
 import { evaluateTransaction, PAYMENT_PURPOSES } from '../src/domain/transaction/evaluateTransaction';
+import type { TransactionDraft } from '../src/domain/transaction/evaluateTransaction';
 import type { AccountVerificationProvider } from '../src/domain/proof/accountVerification';
-import { DEMO_CUSTOMER } from '../src/domain/proof/accountVerification';
+import { DEMO_CUSTOMER, DEMO_MISMATCH_CUSTOMER, DEMO_RECIPIENT } from '../src/domain/proof/accountVerification';
 import { clampTtl, isProofId, minimumClaims, proofStatus } from '../src/domain/proof/proof';
 import type { ProofRecord } from '../src/domain/proof/proof';
+import { matchRecipientProof } from '../src/domain/recipient/verifyRecipient';
+import type { RecipientVerificationResult, RecipientVerificationStatus } from '../src/domain/recipient/verifyRecipient';
 import { errorResponse, HttpError, json, methodNotAllowed, readJson, toErrorResponse } from './http';
 import type { RateLimiter } from './rateLimit';
 import { RATE_LIMITS } from './rateLimit';
@@ -50,21 +53,26 @@ const ReportRequest = z.object({
 
 const ProofCreateRequest = z.object({
   ttlSeconds: z.number().int().optional(),
+  profile: z.enum(['CUSTOMER', 'RECIPIENT', 'MISMATCH']).default('CUSTOMER'),
 });
 
-const TransactionRequest = z.object({
-  callState: z.enum(CALL_STATES),
-  draft: z.object({
-    recipientName: z.string().trim().max(80),
-    recipientIsNew: z.boolean(),
-    amount: z.number().positive().max(1_000_000),
-    currency: z.literal('ZAR'),
-    purpose: z.enum(PAYMENT_PURPOSES),
-    reference: z.string().trim().max(140),
-    recipientVerification: z.enum(['VERIFIED', 'MISMATCH']).optional(),
-  }),
-  language,
-});
+const TransactionRequest = z
+  .object({
+    callState: z.enum(CALL_STATES),
+    draft: z
+      .object({
+        recipientName: z.string().trim().max(80),
+        recipientIsNew: z.boolean(),
+        amount: z.number().positive().max(1_000_000),
+        currency: z.literal('ZAR'),
+        purpose: z.enum(PAYMENT_PURPOSES),
+        reference: z.string().trim().max(140),
+        recipientProofId: z.string().trim().max(100).optional(),
+      })
+      .strict(),
+    language,
+  })
+  .strict();
 
 function parse<T>(schema: z.ZodType<T>, body: unknown): T {
   const result = schema.safeParse(body);
@@ -221,14 +229,18 @@ export function createProofHandler(deps: Deps) {
       if (req.method === 'POST' && path.endsWith('/proof/create')) {
         limit(deps, ctx, 'proofCreate');
         const body = parse(ProofCreateRequest, await readJson(req));
-        const verification = await deps.avs.verifyAccount({ customerRef: DEMO_CUSTOMER.customerRef });
+        const customer =
+          body.profile === 'RECIPIENT' ? DEMO_RECIPIENT : body.profile === 'MISMATCH' ? DEMO_MISMATCH_CUSTOMER : DEMO_CUSTOMER;
+        const verification = await deps.avs.verifyAccount({ customerRef: customer.customerRef });
+        if (!verification.accountExists) throw new HttpError(422, 'ACCOUNT_NOT_FOUND', 'The account could not be verified.');
         const now = deps.now();
         const ttl = clampTtl(body.ttlSeconds);
         const proofId = deps.newProofId();
         const record: ProofRecord = {
           idHash: deps.hash(proofId),
+          subjectRef: customer.customerRef,
           claims: minimumClaims(verification),
-          holder: { displayName: DEMO_CUSTOMER.displayName, accountHint: DEMO_CUSTOMER.accountHint },
+          holder: { displayName: customer.displayName, accountHint: customer.accountHint },
           verifiedAt: verification.verifiedAt,
           createdAt: now.toISOString(),
           expiresAt: new Date(now.getTime() + ttl * 1000).toISOString(),
@@ -281,6 +293,81 @@ export function createProofHandler(deps: Deps) {
   };
 }
 
+
+// SERVER_AUTHORITATIVE_RECIPIENT_VERIFICATION_V2
+/**
+ * The browser supplies only an opaque proof ID. This function is the
+ * authority: it validates the proof, resolves the stored subject and re-runs
+ * the account-verification provider immediately before payment review.
+ */
+async function verifyRecipientForPayment(
+  deps: Deps,
+  draft: TransactionDraft,
+  now: Date,
+): Promise<RecipientVerificationResult> {
+  if (!draft.recipientIsNew && !draft.recipientProofId) return { status: 'NOT_REQUIRED' };
+
+  const proofId = draft.recipientProofId?.trim();
+  if (!proofId) return { status: 'REQUIRED' };
+  if (!isProofId(proofId)) return { status: 'INVALID' };
+
+  let record: ProofRecord | null;
+  try {
+    record = await deps.proofs.get(deps.hash(proofId));
+  } catch {
+    return { status: 'UNAVAILABLE' };
+  }
+  if (!record) return { status: 'NOT_FOUND' };
+
+  const shared = {
+    holder: record.holder,
+    provider: record.provider,
+    simulated: record.simulated,
+    verifiedAt: record.verifiedAt,
+    expiresAt: record.expiresAt,
+  };
+
+  const state = proofStatus(record, now);
+  if (state === 'EXPIRED') return { status: 'EXPIRED', ...shared };
+  if (state === 'REVOKED') return { status: 'REVOKED', ...shared };
+  if (!record.subjectRef) return { status: 'UNAVAILABLE', ...shared };
+
+  let avs;
+  try {
+    avs = await deps.avs.verifyAccount({ customerRef: record.subjectRef });
+  } catch {
+    return { status: 'UNAVAILABLE', ...shared };
+  }
+
+  const nameMatches = matchRecipientProof(draft.recipientName, record.holder.displayName) === 'VERIFIED';
+  const ownershipVerified = avs.ownerMatch && record.claims.accountOwnership === 'VERIFIED';
+  const checks = {
+    accountExists: avs.accountExists,
+    identityVerified: avs.identityVerified && record.claims.identity === 'VERIFIED',
+    ownerMatch: ownershipVerified && nameMatches,
+    accountActive: avs.accountActive && record.claims.accountStatus === 'ACTIVE',
+    acceptsCredits: avs.acceptsCredits && record.claims.canReceiveCredits,
+  };
+
+  let status: RecipientVerificationStatus = 'VERIFIED';
+  if (!avs.accountExists) status = 'NOT_FOUND';
+  else if (!nameMatches) status = 'MISMATCH';
+  else if (!checks.identityVerified) status = 'IDENTITY_NOT_VERIFIED';
+  else if (!ownershipVerified) status = 'OWNERSHIP_NOT_VERIFIED';
+  else if (!checks.accountActive) status = 'ACCOUNT_INACTIVE';
+  else if (!checks.acceptsCredits) status = 'CANNOT_RECEIVE_CREDITS';
+
+  return {
+    status,
+    holder: record.holder,
+    checks,
+    provider: avs.provider,
+    simulated: avs.simulated,
+    verifiedAt: avs.verifiedAt,
+    expiresAt: record.expiresAt,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // POST /api/transaction/check — CallLock + TrustShield re-check. Never moves money.
 // ---------------------------------------------------------------------------
@@ -299,7 +386,11 @@ export function createTransactionHandler(deps: Deps) {
       if (gate.decision === 'PAUSE') {
         return json(200, { ...base, decision: 'PAUSED', reasonCode: gate.reasonCode, verdict: null, reasonCodes: [], reasons: [] });
       }
-      const risk = evaluateTransaction(body.draft);
+      const recipientVerification = await verifyRecipientForPayment(deps, body.draft, deps.now());
+      const risk = evaluateTransaction(body.draft, recipientVerification.status);
+      const requiresConfirmation =
+        risk.risk !== 'STOP' && (!body.draft.recipientIsNew || recipientVerification.status === 'VERIFIED');
+
       return json(200, {
         ...base,
         decision: risk.risk === 'STOP' ? 'BLOCKED' : 'REVIEW',
@@ -307,7 +398,8 @@ export function createTransactionHandler(deps: Deps) {
         verdict: risk.verdict,
         reasonCodes: risk.reasonCodes,
         reasons: risk.signals.map((s) => presentReason(body.language, s)),
-        requiresConfirmation: risk.risk !== 'STOP',
+        recipientVerification,
+        requiresConfirmation,
       });
     } catch (err) {
       return toErrorResponse(err);

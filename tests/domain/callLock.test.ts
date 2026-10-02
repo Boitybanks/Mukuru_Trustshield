@@ -142,7 +142,7 @@ describe('CallLock transaction machine', () => {
 describe('Seeded scenario: Blessing’s fake-job call', () => {
   it('after the call ends TrustShield detects NEW_RECIPIENT, UPFRONT_FEE, FAKE_JOB_CONTEXT → NOT OFFICIAL — STOP', () => {
     const result = evaluateTransaction(draft);
-    expect(result.reasonCodes.sort()).toEqual(['FAKE_JOB_CONTEXT', 'NEW_RECIPIENT', 'UPFRONT_FEE']);
+    expect(result.reasonCodes.sort()).toEqual(['FAKE_JOB_CONTEXT', 'NEW_RECIPIENT', 'RECIPIENT_PROOF_REQUIRED', 'UPFRONT_FEE']);
     expect(result).toMatchObject({ risk: 'STOP', verdict: 'NOT_OFFICIAL' });
   });
 

@@ -35,7 +35,7 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
 
 /** The seeded CallLock story (ATOM.md §42). Recipient and reference are fictional. */
 export const CALLLOCK_SCENARIO = {
-  recipientName: 'Sipho M. (recruiter)',
+  recipientName: 'Tendai Moyo',
   recipientIsNew: true,
   amount: 850,
   currency: 'ZAR' as const,
